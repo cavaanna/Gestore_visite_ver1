@@ -6,10 +6,14 @@ class Luogo {
     
     private String nome;
     private String descrizione;
+    private HashMap<String, List<String>> volontari;
+    private HashMap<String, List<String>> tipiVisita; 
+
 
     public Luogo(String nome, String descrizione) {
         this.nome = nome;
         this.descrizione = descrizione;
+        this.tipiVisita = new HashMap<>();
     }
 
     public String getNome() {
@@ -19,6 +23,15 @@ class Luogo {
     public String getDescrizione() {
         return descrizione;
     }
+    
+
+  /* public void aggiungiTipoVisita(String tipo) {
+        tipiVisita.add(tipo);
+    } */
+
+    /*public void assegnaVolontario(String volontario) {
+        volontari.add(volontario);
+    }*/
 
     public static Luogo creaLuogo(){
         String nome = InputDati.leggiStringaNonVuota("inserire il nome del luogo: ");
@@ -29,6 +42,7 @@ class Luogo {
     public static Luogo creaLuogoUtente(String nome, String descrizione) {
         return new Luogo(nome, descrizione);
     }
+
 
     @Override
     public String toString() {

@@ -3,11 +3,10 @@ package src.it.unibs.ingsw.gestvisit;
 public class MainVisite {
     public static void main(String[] args) {
         VisitManager manager = new VisitManager();
-        manager.leggiCredenzialiConfiguratore();
+        manager.leggiCredenziali();
+        manager.autentica();
 
-        if(manager.autenticaConfiguratore()){
-            System.out.println("Accesso Effettuato");
-            manager.menu();
-        }
+        // Arresta il thread di aggiornamento prima di uscire
+        manager.stopExecutorService();
     }
 }
