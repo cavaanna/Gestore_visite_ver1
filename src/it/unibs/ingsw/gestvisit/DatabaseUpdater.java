@@ -124,6 +124,61 @@ public class DatabaseUpdater {
         }
     }
 
+    // Metodo per aggiungere un volontario al database
+    public void aggiungiVolontario(Volontario volontario) {
+        String sql = "INSERT INTO volontari (nome, cognome, email, password, tipi_di_visite) VALUES (?, ?, ?, ?, ?)";
+        executorService.submit(() -> {
+            try (Connection conn = DatabaseConnection.connect();
+                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, volontario.getNome());
+                pstmt.setString(2, volontario.getCognome());
+                pstmt.setString(3, volontario.getEmail());
+                pstmt.setString(4, volontario.getPassword());
+                pstmt.setString(5, volontario.getTipiDiVisite());
+                pstmt.executeUpdate();
+                System.out.println("Volontario aggiunto al database: " + volontario.getNome());
+            } catch (SQLException e) {
+                System.out.println("Errore durante l'aggiunta del volontario: " + e.getMessage());
+            }
+        });
+    }
+
+    // Metodo per aggiungere un luogo al database
+    public void aggiungiLuogo(Luogo luogo) {
+        String sql = "INSERT INTO luoghi (nome, descrizione) VALUES (?, ?)";
+        executorService.submit(() -> {
+            try (Connection conn = DatabaseConnection.connect();
+                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, luogo.getNome());
+                pstmt.setString(2, luogo.getDescrizione());
+                pstmt.executeUpdate();
+                System.out.println("Luogo aggiunto al database: " + luogo.getNome());
+            } catch (SQLException e) {
+                System.out.println("Errore durante l'aggiunta del luogo: " + e.getMessage());
+            }
+        });
+    }
+
+    // Metodo per aggiungere una visita al database
+    public void aggiungiVisita(Visite visita) {
+        String sql = "INSERT INTO visite (luogo, tipo_visita, volontario, data, stato, max_persone) VALUES (?, ?, ?, ?, ?, ?)";
+        executorService.submit(() -> {
+            try (Connection conn = DatabaseConnection.connect();
+                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, visita.getLuogo());
+                pstmt.setString(2, visita.getTipoVisita());
+                pstmt.setString(3, visita.getVolontario());
+                pstmt.setDate(4, visita.getData() != null ? java.sql.Date.valueOf(visita.getData()) : null);
+                pstmt.setString(5, "Proposta"); // Stato iniziale
+                pstmt.setInt(6, 10); // Valore predefinito per max_persone
+                pstmt.executeUpdate();
+                System.out.println("Visita aggiunta al database: " + visita.getLuogo());
+            } catch (SQLException e) {
+                System.out.println("Errore durante l'aggiunta della visita: " + e.getMessage());
+            }
+        });
+    }
+
     public HashMap<String, Volontario> getVolontariMap() {
         return volontariMap;
     }

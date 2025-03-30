@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import it.unibs.fp.mylib.MyMenu;
 
 public class MenuConfiguratore implements Menu {
-    private static final String[] SELECT = {"Aggiungi Luogo", "Aggiungi Volontario", 
+    private static final String[] SELECT = {"Aggiungi Luogo", "Aggiungi Volontario", "Aggiungi Visita", 
     "Visualizza Luoghi", "Visualizza Volontari", "Assegna Visita", "Visualizza Visite", 
     "Modifica numero massimo di persone per visita", 
     "Modifica stato della visita", "Visualizza visite per stato", "Visualizza archivio storico"};
@@ -13,35 +13,35 @@ public class MenuConfiguratore implements Menu {
 
     @Override
     public void mostraMenu() {
-        // Utilita.caricaLuoghi(luoghi);
-        // Utilita.popolaVolontari(volontari);
-        //Utilita.creazioneTipiVisite(tipiVisita);
+        // Inizializza il menu con le opzioni disponibili
         boolean goOn = true;
         System.out.printf("oggi è il: %d/%d/%d\n", LocalDate.now().getDayOfMonth(), LocalDate.now().getMonthValue(), LocalDate.now().getYear());
         do {
-            MyMenu menu = new MyMenu("What do you want to do?\n", SELECT);
+            MyMenu menu = new MyMenu("Digitare l'opzione desiderata\n", SELECT);
             int chosed = menu.scegli();
 
             if (chosed != 0) {
                 if (chosed == 1) {
                     visitManager.aggiungiLuogo();
                 } else if (chosed == 2) {
-                    visitManager.addVolontario();
+                    visitManager.aggiungiVolontario();
                 } else if (chosed == 3) {
-                    visitManager.showLuoghi();
+                    visitManager.aggiungiVisita();
                 } else if (chosed == 4) {
-                    visitManager.showVolontari();
+                    visitManager.mostraLuoghi();
                 } else if (chosed == 5) {
-                    visitManager.assegnaVisita();
+                    visitManager.mostraVolontari();
                 } else if (chosed == 6) {
-                    visitManager.showVisite();
+                    visitManager.assegnaVisita();
                 } else if (chosed == 7) {
-                    visitManager.modifycaNumeroMaxPersonePerVisita();
-                }else if (chosed == 8) {
-                    visitManager.modificaStatoVisita();
+                    visitManager.mostraVisite();
+                } else if (chosed == 8) {
+                    visitManager.modificaNumeroMaxPersonePerVisita();
                 }else if (chosed == 9) {
+                    visitManager.modificaStatoVisita();
+                }else if (chosed == 10) {
                     visitManager.visualizzaVisitePerStato();
-                }else if(chosed == 10){
+                }else if(chosed == 11){
                     visitManager.visualizzaArchivioStorico();
                 }else if (chosed == 0) {
                     goOn = false;

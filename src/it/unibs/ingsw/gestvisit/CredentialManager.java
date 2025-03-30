@@ -310,9 +310,9 @@ public class CredentialManager {
     // }
 
     public String verificaCredenziali(String username, String password) {
-        String ruolo = null; // Variabile per memorizzare il ruolo dell'utente
+        String tipo_utente = null; // Variabile per memorizzare il ruolo dell'utente
     
-        String sql = "SELECT ruolo FROM utenti_unificati WHERE email = ? AND password = ?";
+        String sql = "SELECT tipo_utente FROM utenti_unificati WHERE email = ? AND password = ?";
     
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -323,15 +323,15 @@ public class CredentialManager {
     
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    ruolo = rs.getString("ruolo"); // Recupera il ruolo dell'utente
+                    tipo_utente = rs.getString("tipo_utente"); // Recupera il tipo_utente
                 }
             }
         } catch (SQLException e) {
             System.out.println("Errore durante la verifica delle credenziali: " + e.getMessage());
         }
     
-        // Restituisci il ruolo dell'utente o null se non autenticato
-        return ruolo;
+        // Restituisci il tipo_utente dell'utente o null se non autenticato
+        return tipo_utente;
     }
 
     public boolean isPasswordModificata(String email) {

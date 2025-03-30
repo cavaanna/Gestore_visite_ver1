@@ -4,6 +4,7 @@ import it.unibs.fp.mylib.*;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
@@ -13,9 +14,8 @@ import java.util.concurrent.Executors;
 
 public class VisitManager {
 
-    private ArrayList<Luogo> luoghi = new ArrayList<>();
-    private ArrayList<Volontario> volontari = new ArrayList<>();
-    private ArrayList<Visite> tipiVisita = new ArrayList<>();    
+    // Attributi------------------------------------------------------------------------------
+    private ArrayList<Volontario> volontari = new ArrayList<>();    
     private ArrayList<Configuratore> configuratori = new ArrayList<>();
     private ArrayList<TemporaryCredential> temporaryCredentials = new ArrayList<>();
     private CredentialManager credentialManager = new CredentialManager();
@@ -38,14 +38,14 @@ public class VisitManager {
     public void autentica() {
         String nomeUtente = InputDati.leggiStringaNonVuota("Inserisci il nome utente (email): ");
         String password = InputDati.leggiStringaNonVuota("Inserisci la password: ");
-        String ruolo = credentialManager.verificaCredenziali(nomeUtente, password);
+        String tipo_utente = credentialManager.verificaCredenziali(nomeUtente, password);
         Boolean credenzialiModificate = credentialManager.isPasswordModificata(nomeUtente);
     
-        if (ruolo == null) {
+        if (tipo_utente == null) {
             System.out.println("Credenziali non valide.");
         } else {
             Menu menu;
-            if (ruolo.equals("Volontario")) {
+            if (tipo_utente.equals("Volontario")) {
                 System.out.println("Accesso come Volontario.");
 
                 // Cerca il volontario corrispondente all'email
@@ -62,15 +62,15 @@ public class VisitManager {
                 }
     
                 menu = new MenuVolontario();
-            } else if (ruolo.equals("Configuratore")) {
+            } else if (tipo_utente.equals("Configuratore")) {
                 System.out.println("Accesso come Configuratore.");
                 menu = new MenuConfiguratore();
-            } else if(ruolo.equals("TEMP")){
+            } else if(tipo_utente.equals("TEMP")){
                 System.out.println("Accesso come utente temporaneo.");
                 modificaCredenzialiConfiguratore();
                 menu = new MenuConfiguratore();
             } else {
-                System.out.println("Ruolo non riconosciuto: " + ruolo);
+                System.out.println("Ruolo non riconosciuto: " + tipo_utente);
                 return;
             }
             menu.mostraMenu();
@@ -82,29 +82,34 @@ public class VisitManager {
     public void aggiungiLuogo() {
         String nome = InputDati.leggiStringaNonVuota("inserire il nome del luogo: ");
         String descrizione = InputDati.leggiStringaNonVuota("inserire la descrizione del luogo: ");
+
         Luogo nuovoLuogo = new Luogo(nome, descrizione);
         databaseUpdater.getLuoghiMap().put(nome, nuovoLuogo);
+        databaseUpdater.aggiungiLuogo(nuovoLuogo);
         System.out.println("Luogo aggiunto: " + nuovoLuogo);
     }
 
-    public void showLuoghi() {
+    public void mostraLuoghi() {
         Utilita.stampaLuoghi();
     }
 
     //Logiche per i volontari-------------------------------------------------------------------------
-    public void addVolontario() {
+    public void aggiungiVolontario() {
         String nome = InputDati.leggiStringaNonVuota("inserire il nome del volontario: ");
         String cognome = InputDati.leggiStringaNonVuota("inserire il cognome del volontario: ");
         String email = InputDati.leggiStringaNonVuota("inserire l'email del volontario: ");
         String nomeUtente = email;
         String password = InputDati.leggiStringaNonVuota("inserire la password: ");
-        Volontario volontario = new Volontario(nome, cognome, email, nomeUtente, password);
-        volontari.add(volontario);
+        
+        Volontario nuovoVolontario = new Volontario(nome, cognome, email, nomeUtente, password);
+        volontari.add(nuovoVolontario);
 
-        Utilita.salvaVolontari(volontario);
+        // Utilita.salvaVolontari(nuovoVolontario);
+        databaseUpdater.aggiungiVolontario(nuovoVolontario);
+        
     }
 
-    public void showVolontari() {
+    public void mostraVolontari() {
         Utilita.stampaVolontari();
     }
 
@@ -113,7 +118,7 @@ public class VisitManager {
         Utilita.assegnaVisita();
     }
 
-    public void showVisite() {
+    public void mostraVisite() {
         Utilita.stampaVisite();
     }
     
@@ -121,7 +126,7 @@ public class VisitManager {
         Utilita.visualizzaVisitePerStato ();
     }
 
-    public void modifycaNumeroMaxPersonePerVisita() {
+    public void modificaNumeroMaxPersonePerVisita() {
         int numeroMax = InputDati.leggiInteroConMinimo("Inserisci il numero massimo di persone per visita: ", 2);
         Utilita.setMaxPersonePerVisita(numeroMax);
         System.out.println("Numero massimo di persone per visita modificato a: " + numeroMax);
@@ -130,29 +135,62 @@ public class VisitManager {
 
     // Metodo per aggiungere una nuova visita
     public void aggiungiVisita() {
-        String luogo = InputDati.leggiStringaNonVuota("Inserisci il luogo della visita: ");
-        String tipoVisita = InputDati.leggiStringaNonVuota("Inserisci il tipo di visita: ");
-        String volontario = InputDati.leggiStringaNonVuota("Inserisci il nome del volontario: ");
-    
-        // Chiedi all'utente se vuole inserire una data
-        boolean risposta = InputDati.yesOrNo("Vuoi inserire una data per la visita? (sì/no): ");
-        LocalDate data = null;
-    
-        if (risposta) {
-            int anno = InputDati.leggiIntero("Inserisci l'anno della visita: ");
-            int mese = InputDati.leggiIntero("Inserisci il mese della visita (1-12): ");
-            int giorno = InputDati.leggiIntero("Inserisci il giorno della visita: ");
-            data = LocalDate.of(anno, mese, giorno);
+        try (Connection conn = DatabaseConnection.connect()) {
+            // Recupera i luoghi disponibili (presenti in "luoghi" ma non in "visite")
+            String sqlLuoghiDisponibili = "SELECT nome FROM luoghi WHERE nome NOT IN (SELECT luogo FROM visite)";
+            PreparedStatement pstmtLuoghi = conn.prepareStatement(sqlLuoghiDisponibili);
+            ResultSet rsLuoghi = pstmtLuoghi.executeQuery();
+
+            List<String> luoghiDisponibili = new ArrayList<>();
+
+            System.out.println("Elenco dei luoghi disponibili:");
+            while (rsLuoghi.next()) {
+                String nomeLuogo = rsLuoghi.getString("nome");
+                luoghiDisponibili.add(nomeLuogo);
+                System.out.println(luoghiDisponibili.size() + ". " + nomeLuogo);
+            }
+
+            // Controlla se ci sono luoghi disponibili
+            if (luoghiDisponibili.isEmpty()) {
+                System.out.println("Non ci sono luoghi disponibili per aggiungere una visita.");
+                return;
+            }
+
+            // L'utente seleziona un luogo dalla lista
+            int luogoIndex = InputDati.leggiIntero("Seleziona il numero del luogo: ", 1, luoghiDisponibili.size()) - 1;
+            String luogoSelezionato = luoghiDisponibili.get(luogoIndex);
+
+            // Chiedi il tipo di visita
+            String tipoVisita = InputDati.leggiStringaNonVuota("Inserisci il tipo di visita: ");
+
+            // Chiedi il nome del volontario
+            String volontario = InputDati.leggiStringaNonVuota("Inserisci il nome del volontario: ");
+
+            // Chiedi all'utente se vuole inserire una data
+            boolean risposta = InputDati.yesOrNo("Vuoi inserire una data per la visita? (sì/no): ");
+            LocalDate data = null;
+
+            if (risposta) {
+                int anno = InputDati.leggiIntero("Inserisci l'anno della visita: ");
+                int mese = InputDati.leggiIntero("Inserisci il mese della visita (1-12): ");
+                int giorno = InputDati.leggiIntero("Inserisci il giorno della visita: ");
+                data = LocalDate.of(anno, mese, giorno);
+            }
+
+            // Crea l'oggetto Visite
+            Visite nuovaVisita = new Visite(luogoSelezionato, tipoVisita, volontario, data);
+
+            // Genera un ID univoco per la visita
+            int id = databaseUpdater.getVisiteMap().size() + 1;
+            databaseUpdater.getVisiteMap().put(id, nuovaVisita);
+
+            // Aggiungi la visita al database
+            databaseUpdater.aggiungiVisita(nuovaVisita);
+            System.out.println("Visita aggiunta: " + nuovaVisita);
+
+        } catch (SQLException e) {
+            System.out.println("Errore durante il recupero dei luoghi disponibili: " + e.getMessage());
         }
-    
-        // Crea l'oggetto Visite
-        Visite nuovaVisita = new Visite(luogo, tipoVisita, volontario, data);
-    
-        // Genera un ID univoco per la visita
-        int id = databaseUpdater.getVisiteMap().size() + 1;
-        databaseUpdater.getVisiteMap().put(id, nuovaVisita);
-    
-        System.out.println("Visita aggiunta: " + nuovaVisita);
     }
 
     public void modificaStatoVisita() {
