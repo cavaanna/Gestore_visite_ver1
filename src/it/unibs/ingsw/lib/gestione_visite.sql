@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 27, 2025 at 06:29 PM
+-- Generation Time: Mar 30, 2025 at 06:21 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -81,6 +81,7 @@ CREATE TABLE `luoghi` (
 
 INSERT INTO `luoghi` (`nome`, `descrizione`) VALUES
 ('Acquario Marino', 'Un acquario con una grande varietà di specie marine.'),
+('Castello di Brescia', 'Alla scoperta del fantastico Castello di Brescia'),
 ('Castello Storico', 'Un castello medievale ben conservato.'),
 ('Museo d\'Arte Moderna', 'Un museo con una vasta collezione di opere d\'arte moderna.'),
 ('Parco Naturale', 'Un parco con sentieri escursionistici e fauna selvatica.'),
@@ -89,28 +90,63 @@ INSERT INTO `luoghi` (`nome`, `descrizione`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `utenti_unificati`
+--
+
+CREATE TABLE `utenti_unificati` (
+  `nome` varchar(255) NOT NULL,
+  `cognome` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `tipo_utente` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password_modificata` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `utenti_unificati`
+--
+
+INSERT INTO `utenti_unificati` (`nome`, `cognome`, `email`, `password`, `tipo_utente`, `password_modificata`) VALUES
+('Mario', 'Rossi', 'mario.rossi@example.com', 'password123', 'Volontario', 0),
+('Luisa', 'Bianchi', 'luisa.bianchi@example.com', 'password456', 'Volontario', 0),
+('Giulia', 'Verdi', 'giulia.verdi@example.com', 'password789', 'Volontario', 0),
+('Alessandro', 'Neri', 'alessandro.neri@example.com', 'password321', 'Volontario', 0),
+('Francesca', 'Gialli', 'francesca.gialli@example.com', 'password654', 'Volontario', 0),
+('Admin', 'Configuratore', 'admin@example.com', 'admin123', 'Configuratore', 0),
+('Super', 'User', 'superuser@example.com', 'super456', 'Configuratore', 0),
+('Nome Temporaneo', 'Cognome Temporaneo', 'tempuser1', 'temppass1', 'TEMP', 1),
+('Nome Temporaneo', 'Cognome Temporaneo', 'tempuser2', 'temppass2', 'TEMP', 1),
+('Nome Temporaneo', 'Cognome Temporaneo', 'tempuser3', 'temppass3', 'TEMP', 1);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `visite`
 --
 
 CREATE TABLE `visite` (
+  `id` int(11) NOT NULL,
   `luogo` varchar(255) DEFAULT NULL,
   `tipo_visita` varchar(255) DEFAULT NULL,
   `volontario` varchar(255) DEFAULT NULL,
-  `data` date DEFAULT NULL
+  `data` date DEFAULT NULL,
+  `max_persone` int(11) DEFAULT 10,
+  `stato` varchar(255) NOT NULL DEFAULT 'Proposta'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `visite`
 --
 
-INSERT INTO `visite` (`luogo`, `tipo_visita`, `volontario`, `data`) VALUES
-('Museo d\'Arte Moderna', 'Arte Moderna', 'Mario Rossi', '2025-03-16'),
-('Parco Naturale', 'Escursione', 'Luisa Bianchi', '2025-03-16'),
-('Castello Storico', 'Storia Medievale', 'Giulia Verdi', '2025-03-16'),
-('Acquario Marino', 'Biologia Marina', 'Alessandro Neri', '2025-03-16'),
-('Teatro Antico', 'Spettacolo Teatrale', 'Francesca Gialli', '2025-03-16'),
-('Acquario Marino', 'Biologia Marina', 'Mario Rossi', '2025-03-16'),
-('Acquario Marino', 'Biologia Marina', 'Mario Rossi', '2025-06-05');
+INSERT INTO `visite` (`id`, `luogo`, `tipo_visita`, `volontario`, `data`, `max_persone`, `stato`) VALUES
+(1, 'Museo d\'Arte Moderna', 'Arte Moderna', 'Mario Rossi', '2025-03-16', 11, 'Confermata'),
+(2, 'Parco Naturale', 'Escursione', 'Luisa Bianchi', '2025-03-16', 11, 'Confermata'),
+(3, 'Castello Storico', 'Storia Medievale', 'Giulia Verdi', '2025-03-16', 11, 'Proposta'),
+(4, 'Acquario Marino', 'Biologia Marina', 'Alessandro Neri', '2025-03-16', 11, 'Proposta'),
+(5, 'Teatro Antico', 'Spettacolo Teatrale', 'Francesca Gialli', '2025-03-16', 11, 'Proposta'),
+(6, 'Acquario Marino', 'Biologia Marina', 'Mario Rossi', '2025-03-16', 11, 'Proposta'),
+(7, 'Acquario Marino', 'Biologia Marina', 'Mario Rossi', '2025-06-05', 11, 'Proposta'),
+(8, 'Castello Storico', 'Storia Medievale', 'Giulia Verdi', '2025-06-30', 10, 'Proposta');
 
 -- --------------------------------------------------------
 
@@ -124,19 +160,20 @@ CREATE TABLE `volontari` (
   `cognome` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `tipi_di_visite` text DEFAULT NULL
+  `tipi_di_visite` text DEFAULT NULL,
+  `password_modificata` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `volontari`
 --
 
-INSERT INTO `volontari` (`id`, `nome`, `cognome`, `email`, `password`, `tipi_di_visite`) VALUES
-(1, 'Mario', 'Rossi', 'mario.rossi@example.com', 'password123', 'Arte, Storia'),
-(2, 'Luisa', 'Bianchi', 'luisa.bianchi@example.com', 'password456', 'Natura, Scienza'),
-(3, 'Giulia', 'Verdi', 'giulia.verdi@example.com', 'password789', 'Storia, Natura'),
-(4, 'Alessandro', 'Neri', 'alessandro.neri@example.com', 'password321', 'Arte, Scienza'),
-(5, 'Francesca', 'Gialli', 'francesca.gialli@example.com', 'password654', 'Natura, Storia');
+INSERT INTO `volontari` (`id`, `nome`, `cognome`, `email`, `password`, `tipi_di_visite`, `password_modificata`) VALUES
+(1, 'Mario', 'Rossi', 'mario.rossi@example.com', 'password123', 'Arte, Storia', 0),
+(2, 'Luisa', 'Bianchi', 'luisa.bianchi@example.com', 'password456', 'Natura, Scienza', 0),
+(3, 'Giulia', 'Verdi', 'giulia.verdi@example.com', 'password789', 'Storia, Natura', 0),
+(4, 'Alessandro', 'Neri', 'alessandro.neri@example.com', 'password321', 'Arte, Scienza', 0),
+(5, 'Francesca', 'Gialli', 'francesca.gialli@example.com', 'password654', 'Natura, Storia', 0);
 
 --
 -- Indexes for dumped tables
@@ -166,6 +203,7 @@ ALTER TABLE `luoghi`
 -- Indexes for table `visite`
 --
 ALTER TABLE `visite`
+  ADD PRIMARY KEY (`id`),
   ADD KEY `luogo` (`luogo`);
 
 --
@@ -190,6 +228,12 @@ ALTER TABLE `configuratori`
 --
 ALTER TABLE `credenziali_temporanee`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `visite`
+--
+ALTER TABLE `visite`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `volontari`

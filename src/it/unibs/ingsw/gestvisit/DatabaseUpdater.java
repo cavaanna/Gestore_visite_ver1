@@ -179,6 +179,53 @@ public class DatabaseUpdater {
         });
     }
 
+    // Metodo per aggiornare il numero massimo di persone per tutte le visite
+    public void aggiornaMaxPersonePerVisita(int maxPersonePerVisita) {
+        String sql = "UPDATE visite SET max_persone = ?";
+        executorService.submit(() -> {
+            try (Connection conn = DatabaseConnection.connect();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, maxPersonePerVisita);
+                int rowsUpdated = pstmt.executeUpdate();
+
+                if (rowsUpdated > 0) {
+                    System.out.println("Numero massimo di persone per visita aggiornato con successo.");
+                } else {
+                    System.out.println("Nessuna visita trovata da aggiornare.");
+                }
+            } catch (SQLException e) {
+                System.out.println("Errore durante l'aggiornamento del numero massimo di persone per visita: " + e.getMessage());
+            }
+        });
+    }
+
+    // Metodo per aggiornare una visita specifica
+    public void aggiornaVisita(int visitaId, Visite visitaAggiornata) {
+        String sql = "UPDATE visite SET luogo = ?, tipo_visita = ?, volontario = ?, data = ?, stato = ?, max_persone = ? WHERE id = ?";
+        executorService.submit(() -> {
+            try (Connection conn = DatabaseConnection.connect();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, visitaAggiornata.getLuogo());
+                pstmt.setString(2, visitaAggiornata.getTipoVisita());
+                pstmt.setString(3, visitaAggiornata.getVolontario());
+                pstmt.setDate(4, visitaAggiornata.getData() != null ? java.sql.Date.valueOf(visitaAggiornata.getData()) : null);
+                pstmt.setString(5, visitaAggiornata.getStato());
+                pstmt.setInt(6, visitaAggiornata.getMaxPersone());
+                pstmt.setInt(7, visitaId);
+
+                int rowsUpdated = pstmt.executeUpdate();
+
+                if (rowsUpdated > 0) {
+                    System.out.println("Visita aggiornata con successo.");
+                } else {
+                    System.out.println("Errore: Nessuna visita trovata con l'ID specificato.");
+                }
+            } catch (SQLException e) {
+                System.out.println("Errore durante l'aggiornamento della visita: " + e.getMessage());
+            }
+        });
+    }
+
     public HashMap<String, Volontario> getVolontariMap() {
         return volontariMap;
     }

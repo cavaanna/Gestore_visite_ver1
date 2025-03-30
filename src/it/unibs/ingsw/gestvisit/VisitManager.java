@@ -21,6 +21,7 @@ public class VisitManager {
     private CredentialManager credentialManager = new CredentialManager();
     private final ExecutorService executorService = Executors.newCachedThreadPool(); // Pool con thread caching
     private final DatabaseUpdater databaseUpdater = new DatabaseUpdater(executorService);
+    private final Utilita utilita = new Utilita(databaseUpdater);
 
     //Gestione Thread-------------------------------------------------------------------------
     public VisitManager() {
@@ -90,7 +91,7 @@ public class VisitManager {
     }
 
     public void mostraLuoghi() {
-        Utilita.stampaLuoghi();
+        utilita.stampaLuoghi();
     }
 
     //Logiche per i volontari-------------------------------------------------------------------------
@@ -110,27 +111,31 @@ public class VisitManager {
     }
 
     public void mostraVolontari() {
-        Utilita.stampaVolontari();
+        utilita.stampaVolontari();
     }
 
     //Logiche per le visite-------------------------------------------------------------------------
     public void assegnaVisita() {
-        Utilita.assegnaVisita();
+        // Utilita.assegnaVisita();
     }
 
-    public void mostraVisite() {
-        Utilita.stampaVisite();
+    public void mostraVisite() {        
+        utilita.stampaVisite();
     }
     
     public void visualizzaVisitePerStato(){
-        Utilita.visualizzaVisitePerStato ();
+        utilita.visualizzaVisitePerStato ();
     }
 
     public void modificaNumeroMaxPersonePerVisita() {
         int numeroMax = InputDati.leggiInteroConMinimo("Inserisci il numero massimo di persone per visita: ", 2);
-        Utilita.setMaxPersonePerVisita(numeroMax);
+        utilita.setMaxPersonePerVisita(numeroMax);
         System.out.println("Numero massimo di persone per visita modificato a: " + numeroMax);
             
+    }
+
+    public void modificaDataVisita() {        
+        utilita.modificaDataVisita();
     }
 
     // Metodo per aggiungere una nuova visita
@@ -163,12 +168,33 @@ public class VisitManager {
             // Chiedi il tipo di visita
             String tipoVisita = InputDati.leggiStringaNonVuota("Inserisci il tipo di visita: ");
 
-            // Chiedi il nome del volontario
-            String volontario = InputDati.leggiStringaNonVuota("Inserisci il nome del volontario: ");
+            // Recupera i volontari disponibili dal database
+            String sqlVolontari = "SELECT nome, cognome FROM volontari";
+            PreparedStatement pstmtVolontari = conn.prepareStatement(sqlVolontari);
+            ResultSet rsVolontari = pstmtVolontari.executeQuery();
+
+            List<String> volontari = new ArrayList<>();
+            System.out.println("Elenco dei volontari disponibili:");
+            while (rsVolontari.next()) {
+                String nomeVolontario = rsVolontari.getString("nome") + " " + rsVolontari.getString("cognome");
+                volontari.add(nomeVolontario);
+                System.out.println(volontari.size() + ". " + nomeVolontario);
+            }
+
+            // Controlla se ci sono volontari disponibili
+            if (volontari.isEmpty()) {
+                System.out.println("Non ci sono volontari disponibili.");
+                return;
+            }
+
+            // L'utente seleziona un volontario dalla lista
+            int volontarioIndex = InputDati.leggiIntero("Seleziona il numero del volontario: ", 1, volontari.size()) - 1;
+            String volontarioSelezionato = volontari.get(volontarioIndex);
+
 
             // Chiedi all'utente se vuole inserire una data
             boolean risposta = InputDati.yesOrNo("Vuoi inserire una data per la visita? (sì/no): ");
-            LocalDate data = null;
+            LocalDate data = LocalDate.now(); // Data di default è oggi
 
             if (risposta) {
                 int anno = InputDati.leggiIntero("Inserisci l'anno della visita: ");
@@ -178,7 +204,7 @@ public class VisitManager {
             }
 
             // Crea l'oggetto Visite
-            Visite nuovaVisita = new Visite(luogoSelezionato, tipoVisita, volontario, data);
+            Visite nuovaVisita = new Visite(luogoSelezionato, tipoVisita, volontarioSelezionato , data);
 
             // Genera un ID univoco per la visita
             int id = databaseUpdater.getVisiteMap().size() + 1;
@@ -194,12 +220,12 @@ public class VisitManager {
     }
 
     public void modificaStatoVisita() {
-        Utilita.modificaStatoVisita();
+        utilita.modificaStatoVisita();
     }
 
     public void visualizzaArchivioStorico() {
-        Utilita.visualizzaArchivioStorico();
-    }
+        utilita.visualizzaArchivioStorico();
+    }    
 
     //Logiche per le credenziali-------------------------------------------------------------------------
     public void modificaCredenzialiConfiguratore() {
