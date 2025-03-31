@@ -5,7 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
@@ -141,7 +140,6 @@ private void caricaVisite() {
                 pstmt.setString(4, volontario.getPassword());
                 pstmt.setString(5, volontario.getTipiDiVisite());
                 pstmt.executeUpdate();
-                System.out.println("Volontario aggiunto al database: " + volontario.getNome());
             } catch (SQLException e) {
                 System.out.println("Errore durante l'aggiunta del volontario: " + e.getMessage());
             }
@@ -157,7 +155,6 @@ private void caricaVisite() {
                 pstmt.setString(1, luogo.getNome());
                 pstmt.setString(2, luogo.getDescrizione());
                 pstmt.executeUpdate();
-                System.out.println("Luogo aggiunto al database: " + luogo.getNome());
             } catch (SQLException e) {
                 System.out.println("Errore durante l'aggiunta del luogo: " + e.getMessage());
             }
@@ -177,7 +174,6 @@ private void caricaVisite() {
                 pstmt.setString(5, "Proposta"); // Stato iniziale
                 pstmt.setInt(6, 10); // Valore predefinito per max_persone
                 pstmt.executeUpdate();
-                System.out.println("Visita aggiunta al database: " + visita.getLuogo());
             } catch (SQLException e) {
                 System.out.println("Errore durante l'aggiunta della visita: " + e.getMessage());
             }
@@ -229,6 +225,21 @@ private void caricaVisite() {
                 System.out.println("Errore durante l'aggiornamento della visita: " + e.getMessage());
             }
         });
+    }
+
+    public int getMaxPersoneDefault() {
+        String sql = "SELECT valore FROM configurazioni WHERE chiave = 'max_persone_default'";
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+    
+            if (rs.next()) {
+                return rs.getInt("valore");
+            }
+        } catch (SQLException e) {
+            System.out.println("Errore durante il recupero del numero massimo di persone: " + e.getMessage());
+        }
+        return 10; // Valore di default se non trovato nel database
     }
 
     public ConcurrentHashMap<String, Volontario> getVolontariMap() {

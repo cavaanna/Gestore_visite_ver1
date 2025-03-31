@@ -1,16 +1,10 @@
 package src.it.unibs.ingsw.gestvisit;
 
 import it.unibs.fp.mylib.*;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 
 public class VisitManager {
@@ -20,7 +14,7 @@ public class VisitManager {
     private ArrayList<Configuratore> configuratori = new ArrayList<>();
     private ArrayList<TemporaryCredential> temporaryCredentials = new ArrayList<>();
     private CredentialManager credentialManager = new CredentialManager();
-    private final ExecutorService executorService = Executors.newCachedThreadPool(); // Pool con thread caching
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor(); // Pool con thread caching
     private final DatabaseUpdater databaseUpdater = new DatabaseUpdater(executorService);
     private final Utilita utilita = new Utilita(databaseUpdater);
 
@@ -32,6 +26,14 @@ public class VisitManager {
 
     public void stopExecutorService() {
         executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
         System.out.println("ExecutorService arrestato.");
     }
 
@@ -87,8 +89,10 @@ public class VisitManager {
 
         Luogo nuovoLuogo = new Luogo(nome, descrizione);
         databaseUpdater.getLuoghiMap().put(nome, nuovoLuogo);
-        databaseUpdater.aggiungiLuogo(nuovoLuogo);
         System.out.println("Luogo aggiunto: " + nuovoLuogo);
+
+        databaseUpdater.aggiungiLuogo(nuovoLuogo);
+        
     }
 
     public void mostraLuoghi() {
@@ -106,7 +110,6 @@ public class VisitManager {
         Volontario nuovoVolontario = new Volontario(nome, cognome, email, nomeUtente, password);
         volontari.add(nuovoVolontario);
 
-        // Utilita.salvaVolontari(nuovoVolontario);
         databaseUpdater.aggiungiVolontario(nuovoVolontario);
         
     }
@@ -141,65 +144,7 @@ public class VisitManager {
 
     // Metodo per aggiungere una nuova visita
     public void aggiungiVisita() {
-        databaseUpdater.sincronizzaDalDatabase();
-        ConcurrentHashMap<String, Luogo> luoghiMap = databaseUpdater.getLuoghiMap();
-        ConcurrentHashMap<String, Volontario> volontariMap = databaseUpdater.getVolontariMap();
-        ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
-    
-        if (luoghiMap.isEmpty()) {
-            System.out.println("Non ci sono luoghi disponibili per aggiungere una visita.");
-            return;
-        }
-    
-        System.out.println("Elenco dei luoghi disponibili:");
-        List<String> luoghiNomi = new ArrayList<>(luoghiMap.keySet());
-        for (int i = 0; i < luoghiNomi.size(); i++) {
-            System.out.printf("%d. %s%n", i + 1, luoghiNomi.get(i));
-        }
-    
-        int luogoIndex = InputDati.leggiIntero("Seleziona il numero del luogo: ", 1, luoghiNomi.size()) - 1;
-        String luogoSelezionato = luoghiNomi.get(luogoIndex);
-    
-        String tipoVisita = InputDati.leggiStringaNonVuota("Inserisci il tipo di visita: ");
-    
-        if (volontariMap.isEmpty()) {
-            System.out.println("Non ci sono volontari disponibili.");
-            return;
-        }
-    
-        System.out.println("Elenco dei volontari disponibili:");
-        List<String> volontariNomi = new ArrayList<>(volontariMap.keySet());
-        for (int i = 0; i < volontariNomi.size(); i++) {
-            System.out.printf("%d. %s%n", i + 1, volontariNomi.get(i));
-        }
-    
-        int volontarioIndex = InputDati.leggiIntero("Seleziona il numero del volontario: ", 1, volontariNomi.size()) - 1;
-        String volontarioSelezionato = volontariNomi.get(volontarioIndex);
-    
-        boolean risposta = InputDati.yesOrNo("Vuoi inserire una data per la visita? (sì/no): ");
-        LocalDate data = LocalDate.now(); // Data di default è oggi
-    
-        if (risposta) {
-            int anno = InputDati.leggiIntero("Inserisci l'anno della visita: ");
-            int mese = InputDati.leggiIntero("Inserisci il mese della visita (1-12): ");
-            int giorno = InputDati.leggiIntero("Inserisci il giorno della visita: ");
-            data = LocalDate.of(anno, mese, giorno);
-        }
-    
-        int maxPersone = InputDati.leggiInteroConMinimo("Inserisci il numero massimo di persone per la visita: ", 1);
-        String stato = "Proposta"; // Stato iniziale della visita
-    
-        // Genera un ID univoco per la visita
-        int id = visiteMap.size() + 1;
-    
-        // Crea l'oggetto Visite utilizzando il costruttore completo
-        Visite nuovaVisita = new Visite(id, luogoSelezionato, tipoVisita, volontarioSelezionato, data, maxPersone, stato);
-    
-        // Aggiungi la visita alla mappa e al database
-        visiteMap.put(id, nuovaVisita);
-        databaseUpdater.aggiungiVisita(nuovaVisita);
-    
-        System.out.println("Visita aggiunta: " + nuovaVisita);
+        utilita.assegnaVisita();
     }
 
     public void modificaStatoVisita() {

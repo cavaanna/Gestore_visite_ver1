@@ -532,7 +532,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -740,12 +739,12 @@ public class Utilita {
         ConcurrentHashMap<String, Volontario> volontariMap = databaseUpdater.getVolontariMap();
         ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
 
-    
+        // Se non ci sono luoghi o volontari disponibili, mostra un messaggio e termina il metodo
         if (luoghiMap.isEmpty()) {
             System.out.println("Nessun luogo disponibile.");
             return;
         }
-    
+        
         System.out.println("Elenco dei luoghi disponibili:");
         List<String> luoghiNomi = new ArrayList<>(luoghiMap.keySet());
         for (int i = 0; i < luoghiNomi.size(); i++) {
@@ -755,25 +754,7 @@ public class Utilita {
         int luogoIndex = InputDati.leggiIntero("Seleziona il numero del luogo: ", 1, luoghiNomi.size()) - 1;
         String luogoNomeScelto = luoghiNomi.get(luogoIndex);
     
-        System.out.println("Tipi di visita disponibili per il luogo " + luogoNomeScelto + ":");
-        List<String> tipiVisita = new ArrayList<>();
-        for (Visite visita : visiteMap.values()) {
-            if (luogoNomeScelto.equals(visita.getLuogo()) && !tipiVisita.contains(visita.getTipoVisita())) {
-                tipiVisita.add(visita.getTipoVisita());
-            }
-        }
-    
-        if (tipiVisita.isEmpty()) {
-            System.out.println("Nessun tipo di visita disponibile per il luogo selezionato.");
-            return;
-        }
-    
-        for (int i = 0; i < tipiVisita.size(); i++) {
-            System.out.printf("%d. %s%n", i + 1, tipiVisita.get(i));
-        }
-    
-        int tipoVisitaIndex = InputDati.leggiIntero("Seleziona il numero del tipo di visita: ", 1, tipiVisita.size()) - 1;
-        String tipoVisitaScelto = tipiVisita.get(tipoVisitaIndex);
+        String tipoVisitaScelto = InputDati.leggiStringaNonVuota("Inserisci il tipo di visita: ");
     
         if (volontariMap.isEmpty()) {
             System.out.println("Nessun volontario disponibile.");
@@ -792,23 +773,35 @@ public class Utilita {
         LocalDate oggi = LocalDate.now();
         YearMonth meseTarget = YearMonth.of(oggi.getYear(), oggi.getMonth().plus(3));
         List<LocalDate> dateValide = new ArrayList<>();
-    
-        for (int giorno = 1; giorno <= meseTarget.lengthOfMonth(); giorno++) {
-            LocalDate data = meseTarget.atDay(giorno);
-            if (data.getDayOfWeek() != DayOfWeek.SATURDAY && data.getDayOfWeek() != DayOfWeek.SUNDAY) {
-                dateValide.add(data);
+        
+        Boolean dataPersonale = InputDati.yesOrNo("Vuoi inserire una data personale? ");
+        LocalDate dataVisita;
+        if(dataPersonale){
+            int anno = InputDati.leggiIntero("Inserisci l'anno della visita: ");
+            int mese = InputDati.leggiIntero("Inserisci il mese della visita (1-12): ");
+            int giorno = InputDati.leggiIntero("Inserisci il giorno della visita: ");
+            LocalDate dataPers = LocalDate.of(anno, mese, giorno);
+            dataVisita = dataPers;
+        } else {
+            for (int giorno = 1; giorno <= meseTarget.lengthOfMonth(); giorno++) {
+                LocalDate data = meseTarget.atDay(giorno);
+                if (data.getDayOfWeek() != DayOfWeek.SATURDAY && data.getDayOfWeek() != DayOfWeek.SUNDAY) {
+                    dateValide.add(data);
+                }
             }
+        
+            System.out.println("\nDate disponibili per la visita:");
+            for (int i = 0; i < dateValide.size(); i++) {
+                System.out.printf("%d. %s%n", i + 1, dateValide.get(i));
+            }
+        
+            int dataIndex = InputDati.leggiIntero("Seleziona il numero della data: ", 1, dateValide.size()) - 1;
+            LocalDate dataI = dateValide.get(dataIndex);
+            dataVisita = dataI;
         }
+
     
-        System.out.println("\nDate disponibili per la visita:");
-        for (int i = 0; i < dateValide.size(); i++) {
-            System.out.printf("%d. %s%n", i + 1, dateValide.get(i));
-        }
-    
-        int dataIndex = InputDati.leggiIntero("Seleziona il numero della data: ", 1, dateValide.size()) - 1;
-        LocalDate dataVisita = dateValide.get(dataIndex);
-    
-        int maxPersone = InputDati.leggiInteroConMinimo("Inserisci il numero massimo di persone per la visita: ", 1);
+        int maxPersone = databaseUpdater.getMaxPersoneDefault();
         String stato = "Proposta"; // Stato iniziale della visita
     
         // Genera un ID univoco per la visita
@@ -816,11 +809,10 @@ public class Utilita {
     
         // Crea l'oggetto Visite utilizzando il costruttore completo
         Visite nuovaVisita = new Visite(id, luogoNomeScelto, tipoVisitaScelto, volontarioNomeScelto, dataVisita, maxPersone, stato);
-    
+        System.out.println("Visita assegnata con successo per la data " + dataVisita + "!");
         // Aggiungi la visita al database
         databaseUpdater.aggiungiVisita(nuovaVisita);
     
-        System.out.println("Visita assegnata con successo per la data " + dataVisita + "!");
     }
 
 }
