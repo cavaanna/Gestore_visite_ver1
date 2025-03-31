@@ -1,6 +1,6 @@
-package src.it.unibs.ingsw.gestvisit;
+package src.it.unibs.ingsw.gestvisit.gestvisit;
 
-import it.unibs.fp.mylib.MyMenu;
+import it.unibs.mylib.MyMenu;
 
 public class MenuVolontario implements Menu {
     private static final String[] OPZIONI_VOLONTARIO = {

@@ -1,6 +1,4 @@
-package src.it.unibs.ingsw.gestvisit;
-
-import java.util.List;
+package src.it.unibs.ingsw.gestvisit.gestvisit;
 
 public class Volontario extends Utente {
     private String email;

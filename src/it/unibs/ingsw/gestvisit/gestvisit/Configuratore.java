@@ -1,4 +1,4 @@
-package src.it.unibs.ingsw.gestvisit;
+package src.it.unibs.ingsw.gestvisit.gestvisit;
 
 
 public class Configuratore extends Utente {

@@ -1,4 +1,4 @@
-package src.it.unibs.ingsw.gestvisit;
+package src.it.unibs.ingsw.gestvisit.gestvisit;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,10 +12,10 @@ public class DatabaseUpdater {
     private final ExecutorService executorService;
 
     // HashMap per memorizzare i dati sincronizzati
-    private final ConcurrentHashMap<String, Volontario> volontariMap = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Configuratore> configuratoriMap = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Luogo> luoghiMap = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Integer, Visite> visiteMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, Volontario> volontariMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, Configuratore> configuratoriMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, Luogo> luoghiMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Integer, Visite> visiteMap = new ConcurrentHashMap<>();
 
     public DatabaseUpdater(ExecutorService executorService) {
         this.executorService = executorService;

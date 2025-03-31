@@ -1,4 +1,4 @@
-package src.it.unibs.ingsw.gestvisit;
+package src.it.unibs.ingsw.gestvisit.gestvisit;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

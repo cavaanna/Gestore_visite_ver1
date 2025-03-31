@@ -526,7 +526,7 @@
 
 // }
 
-package src.it.unibs.ingsw.gestvisit;
+package src.it.unibs.ingsw.gestvisit.gestvisit;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -536,7 +536,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import it.unibs.fp.mylib.InputDati;
+import it.unibs.mylib.InputDati;
 
 public class Utilita {
 
@@ -652,26 +652,28 @@ public class Utilita {
         databaseUpdater.sincronizzaDalDatabase();
         ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
 
-        if (visiteMap.isEmpty()) {
-            System.out.println("Non ci sono visite disponibili.");
-            return;
-        }
-
-        String[] stati = {"Proposta", "Completa", "Confermata", "Cancellata", "Effettuata"};
-        System.out.println("Stati disponibili:");
-        for (int i = 0; i < stati.length; i++) {
-            System.out.printf("%d. %s%n", i + 1, stati[i]);
-        }
-
-        int sceltaStato = InputDati.leggiIntero("Seleziona lo stato da visualizzare: ", 1, stati.length) - 1;
-        String statoScelto = stati[sceltaStato];
-
-        System.out.printf("Visite in stato '%s':%n", statoScelto);
-        for (Visite visita : visiteMap.values()) {
-            if (visita.getStato().equalsIgnoreCase(statoScelto)) {
-                System.out.printf("Luogo: %s, Tipo Visita: %s, Volontario: %s, Data: %s%n",
-                        visita.getLuogo(), visita.getTipoVisita(), visita.getVolontario(),
-                        visita.getData() != null ? visita.getData() : "Nessuna data");
+        synchronized (visiteMap) {
+            if (visiteMap.isEmpty()) {
+                System.out.println("Non ci sono visite disponibili.");
+                return;
+            }
+    
+            String[] stati = {"Proposta", "Completa", "Confermata", "Cancellata", "Effettuata"};
+            System.out.println("Stati disponibili:");
+            for (int i = 0; i < stati.length; i++) {
+                System.out.printf("%d. %s%n", i + 1, stati[i]);
+            }
+    
+            int sceltaStato = InputDati.leggiIntero("Seleziona lo stato da visualizzare: ", 1, stati.length) - 1;
+            String statoScelto = stati[sceltaStato];
+    
+            System.out.printf("Visite in stato '%s':%n", statoScelto);
+            for (Visite visita : visiteMap.values()) {
+                if (visita.getStato().equalsIgnoreCase(statoScelto)) {
+                    System.out.printf("Luogo: %s, Tipo Visita: %s, Volontario: %s, Data: %s%n",
+                            visita.getLuogo(), visita.getTipoVisita(), visita.getVolontario(),
+                            visita.getData() != null ? visita.getData() : "Nessuna data");
+                }
             }
         }
     }

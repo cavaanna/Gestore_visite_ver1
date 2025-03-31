@@ -1,8 +1,8 @@
-package src.it.unibs.ingsw.gestvisit;
+package src.it.unibs.ingsw.gestvisit.gestvisit;
 
 import java.time.LocalDate;
 
-import it.unibs.fp.mylib.MyMenu;
+import it.unibs.mylib.MyMenu;
 
 public class MenuConfiguratore implements Menu {
     private static final String[] SELECT = {"Aggiungi Luogo", "Aggiungi Volontario", "Aggiungi Visita", 

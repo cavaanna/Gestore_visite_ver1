@@ -1,12 +1,13 @@
-package src.it.unibs.ingsw.gestvisit;
+package src.it.unibs.ingsw.gestvisit.gestvisit;
 
 import java.util.List;
+
+import it.unibs.mylib.InputDati;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import it.unibs.fp.mylib.InputDati;
 
 public class CredentialManager {
     // private List<Utente> utenti = new ArrayList<>();

@@ -1,6 +1,8 @@
-package src.it.unibs.ingsw.gestvisit;
+package src.it.unibs.ingsw.gestvisit.gestvisit;
 
-import it.unibs.fp.mylib.*;
+//import it.unibs.mylib.*;
+import it.unibs.mylib.InputDati;
+
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
