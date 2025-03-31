@@ -4,17 +4,19 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 public class DatabaseUpdater {
     private final ExecutorService executorService;
 
     // HashMap per memorizzare i dati sincronizzati
-    private final HashMap<String, Volontario> volontariMap = new HashMap<>();
-    private final HashMap<String, Configuratore> configuratoriMap = new HashMap<>();
-    private final HashMap<String, Luogo> luoghiMap = new HashMap<>();
-    private final HashMap<Integer, Visite> visiteMap = new HashMap<>();
+    private final ConcurrentHashMap<String, Volontario> volontariMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Configuratore> configuratoriMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Luogo> luoghiMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, Visite> visiteMap = new ConcurrentHashMap<>();
 
     public DatabaseUpdater(ExecutorService executorService) {
         this.executorService = executorService;
@@ -100,29 +102,32 @@ public class DatabaseUpdater {
         }
     }
 
-    private void caricaVisite() {
-        String sql = "SELECT luogo, tipo_visita, volontario, data FROM visite";
-        try (Connection conn = DatabaseConnection.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
+private void caricaVisite() {
+    String sql = "SELECT id, luogo, tipo_visita, volontario, data, stato, max_persone FROM visite";
+    try (Connection conn = DatabaseConnection.connect();
+         PreparedStatement pstmt = conn.prepareStatement(sql);
+         ResultSet rs = pstmt.executeQuery()) {
 
-            synchronized (visiteMap) {
-                visiteMap.clear();
-                while (rs.next()) {
-                    int id = rs.getRow(); // Usa il numero di riga come ID univoco
-                    Visite visita = new Visite(
-                            rs.getString("luogo"),
-                            rs.getString("tipo_visita"),
-                            rs.getString("volontario"),
-                            rs.getDate("data").toLocalDate() // Converte la data in LocalDate
-                    );
-                    visiteMap.put(id, visita);
-                }
+        synchronized (visiteMap) {
+            visiteMap.clear();
+            while (rs.next()) {
+                int id = rs.getInt("id"); // ID della visita
+                String luogo = rs.getString("luogo");
+                String tipoVisita = rs.getString("tipo_visita");
+                String volontario = rs.getString("volontario");
+                LocalDate data = rs.getDate("data") != null ? rs.getDate("data").toLocalDate() : null; // Converte la data in LocalDate
+                int maxPersone = rs.getInt("max_persone");
+                String stato = rs.getString("stato");
+
+                // Usa il costruttore completo di Visite
+                Visite visita = new Visite(id, luogo, tipoVisita, volontario, data, maxPersone, stato);
+                visiteMap.put(id, visita);
             }
-        } catch (SQLException e) {
-            System.out.println("Errore durante il caricamento delle visite: " + e.getMessage());
         }
+    } catch (SQLException e) {
+        System.out.println("Errore durante il caricamento delle visite: " + e.getMessage());
     }
+}
 
     // Metodo per aggiungere un volontario al database
     public void aggiungiVolontario(Volontario volontario) {
@@ -226,19 +231,19 @@ public class DatabaseUpdater {
         });
     }
 
-    public HashMap<String, Volontario> getVolontariMap() {
+    public ConcurrentHashMap<String, Volontario> getVolontariMap() {
         return volontariMap;
     }
 
-    public HashMap<String, Configuratore> getConfiguratoriMap() {
+    public ConcurrentHashMap<String, Configuratore> getConfiguratoriMap() {
         return configuratoriMap;
     }
 
-    public HashMap<String, Luogo> getLuoghiMap() {
+    public ConcurrentHashMap<String, Luogo> getLuoghiMap() {
         return luoghiMap;
     }
 
-    public HashMap<Integer, Visite> getVisiteMap() {
+    public ConcurrentHashMap<Integer, Visite> getVisiteMap() {
         return visiteMap;
     }
 }

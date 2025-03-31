@@ -11,13 +11,13 @@ public class Visite {
     private int maxPersone; // Numero massimo di persone per la visita
     private String stato; // Stato della visita (es. "Proposta", "Confermata", ecc.)
 
-    // Costruttore
-    public Visite(String luogo, String tipoVisita, String volontario, LocalDate data) {
-        this.luogo = luogo;
-        this.tipoVisita = tipoVisita;
-        this.volontario = volontario;
-        this.data = data;
-    }
+    // // Costruttore
+    // public Visite(String luogo, String tipoVisita, String volontario, LocalDate data) {
+    //     this.luogo = luogo;
+    //     this.tipoVisita = tipoVisita;
+    //     this.volontario = volontario;
+    //     this.data = data;
+    // }
 
     // Costruttore completo (inclusi tutti i campi)
     public Visite(int id, String luogo, String tipoVisita, String volontario, LocalDate data, int maxPersone, String stato) {

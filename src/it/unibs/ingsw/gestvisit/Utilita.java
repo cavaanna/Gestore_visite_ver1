@@ -528,10 +528,14 @@
 
 package src.it.unibs.ingsw.gestvisit;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import it.unibs.fp.mylib.InputDati;
 
@@ -546,7 +550,7 @@ public class Utilita {
     // Metodo per stampare i luoghi
     public void stampaLuoghi() {
         databaseUpdater.sincronizzaDalDatabase();
-        HashMap<String, Luogo> luoghiMap = databaseUpdater.getLuoghiMap();
+        ConcurrentHashMap<String, Luogo> luoghiMap = databaseUpdater.getLuoghiMap();
 
         if (luoghiMap.isEmpty()) {
             System.out.println("Nessun luogo disponibile.");
@@ -564,7 +568,7 @@ public class Utilita {
     // Metodo per stampare i volontari
     public void stampaVolontari() {
         databaseUpdater.sincronizzaDalDatabase();
-        HashMap<String, Volontario> volontariMap = databaseUpdater.getVolontariMap();
+        ConcurrentHashMap<String, Volontario> volontariMap = databaseUpdater.getVolontariMap();
 
         if (volontariMap.isEmpty()) {
             System.out.println("Nessun volontario disponibile.");
@@ -583,7 +587,7 @@ public class Utilita {
     // Metodo per stampare le visite
     public void stampaVisite() {
         databaseUpdater.sincronizzaDalDatabase();
-        HashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
+        ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
 
         if (visiteMap.isEmpty()) {
             System.out.println("Nessuna visita disponibile.");
@@ -605,7 +609,7 @@ public class Utilita {
     // Metodo per modificare la data di una visita
     public void modificaDataVisita() {
         databaseUpdater.sincronizzaDalDatabase();
-        HashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
+        ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
 
         if (visiteMap.isEmpty()) {
             System.out.println("Non ci sono visite disponibili da modificare.");
@@ -647,7 +651,7 @@ public class Utilita {
     // Metodo per visualizzare le visite per stato
     public void visualizzaVisitePerStato() {
         databaseUpdater.sincronizzaDalDatabase();
-        HashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
+        ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
 
         if (visiteMap.isEmpty()) {
             System.out.println("Non ci sono visite disponibili.");
@@ -675,7 +679,7 @@ public class Utilita {
 
     public void modificaStatoVisita() {
         databaseUpdater.sincronizzaDalDatabase();
-        HashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
+        ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
     
         if (visiteMap.isEmpty()) {
             System.out.println("Non ci sono visite disponibili da modificare.");
@@ -713,7 +717,7 @@ public class Utilita {
 
     public void visualizzaArchivioStorico() {
         databaseUpdater.sincronizzaDalDatabase();
-        HashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
+        ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
     
         if (visiteMap.isEmpty()) {
             System.out.println("Non ci sono visite disponibili nell'archivio storico.");
@@ -728,6 +732,95 @@ public class Utilita {
                         visita.getData() != null ? visita.getData() : "Nessuna data");
             }
         }
+    }
+
+    public void assegnaVisita() {
+        databaseUpdater.sincronizzaDalDatabase();
+        ConcurrentHashMap<String, Luogo> luoghiMap = databaseUpdater.getLuoghiMap();
+        ConcurrentHashMap<String, Volontario> volontariMap = databaseUpdater.getVolontariMap();
+        ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
+
+    
+        if (luoghiMap.isEmpty()) {
+            System.out.println("Nessun luogo disponibile.");
+            return;
+        }
+    
+        System.out.println("Elenco dei luoghi disponibili:");
+        List<String> luoghiNomi = new ArrayList<>(luoghiMap.keySet());
+        for (int i = 0; i < luoghiNomi.size(); i++) {
+            System.out.printf("%d. %s%n", i + 1, luoghiNomi.get(i));
+        }
+    
+        int luogoIndex = InputDati.leggiIntero("Seleziona il numero del luogo: ", 1, luoghiNomi.size()) - 1;
+        String luogoNomeScelto = luoghiNomi.get(luogoIndex);
+    
+        System.out.println("Tipi di visita disponibili per il luogo " + luogoNomeScelto + ":");
+        List<String> tipiVisita = new ArrayList<>();
+        for (Visite visita : visiteMap.values()) {
+            if (luogoNomeScelto.equals(visita.getLuogo()) && !tipiVisita.contains(visita.getTipoVisita())) {
+                tipiVisita.add(visita.getTipoVisita());
+            }
+        }
+    
+        if (tipiVisita.isEmpty()) {
+            System.out.println("Nessun tipo di visita disponibile per il luogo selezionato.");
+            return;
+        }
+    
+        for (int i = 0; i < tipiVisita.size(); i++) {
+            System.out.printf("%d. %s%n", i + 1, tipiVisita.get(i));
+        }
+    
+        int tipoVisitaIndex = InputDati.leggiIntero("Seleziona il numero del tipo di visita: ", 1, tipiVisita.size()) - 1;
+        String tipoVisitaScelto = tipiVisita.get(tipoVisitaIndex);
+    
+        if (volontariMap.isEmpty()) {
+            System.out.println("Nessun volontario disponibile.");
+            return;
+        }
+    
+        System.out.println("\nElenco dei volontari disponibili:");
+        List<String> volontariNomi = new ArrayList<>(volontariMap.keySet());
+        for (int i = 0; i < volontariNomi.size(); i++) {
+            System.out.printf("%d. %s%n", i + 1, volontariNomi.get(i));
+        }
+    
+        int volontarioIndex = InputDati.leggiIntero("Seleziona il numero del volontario: ", 1, volontariNomi.size()) - 1;
+        String volontarioNomeScelto = volontariNomi.get(volontarioIndex);
+    
+        LocalDate oggi = LocalDate.now();
+        YearMonth meseTarget = YearMonth.of(oggi.getYear(), oggi.getMonth().plus(3));
+        List<LocalDate> dateValide = new ArrayList<>();
+    
+        for (int giorno = 1; giorno <= meseTarget.lengthOfMonth(); giorno++) {
+            LocalDate data = meseTarget.atDay(giorno);
+            if (data.getDayOfWeek() != DayOfWeek.SATURDAY && data.getDayOfWeek() != DayOfWeek.SUNDAY) {
+                dateValide.add(data);
+            }
+        }
+    
+        System.out.println("\nDate disponibili per la visita:");
+        for (int i = 0; i < dateValide.size(); i++) {
+            System.out.printf("%d. %s%n", i + 1, dateValide.get(i));
+        }
+    
+        int dataIndex = InputDati.leggiIntero("Seleziona il numero della data: ", 1, dateValide.size()) - 1;
+        LocalDate dataVisita = dateValide.get(dataIndex);
+    
+        int maxPersone = InputDati.leggiInteroConMinimo("Inserisci il numero massimo di persone per la visita: ", 1);
+        String stato = "Proposta"; // Stato iniziale della visita
+    
+        // Genera un ID univoco per la visita
+        int id = visiteMap.size() + 1;
+    
+        // Crea l'oggetto Visite utilizzando il costruttore completo
+        Visite nuovaVisita = new Visite(id, luogoNomeScelto, tipoVisitaScelto, volontarioNomeScelto, dataVisita, maxPersone, stato);
+    
+        // Aggiungi la visita al database
+        databaseUpdater.aggiungiVisita(nuovaVisita);
+    
+        System.out.println("Visita assegnata con successo per la data " + dataVisita + "!");
     }
 
 }
