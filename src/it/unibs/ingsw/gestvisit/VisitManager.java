@@ -3,7 +3,6 @@ package src.it.unibs.ingsw.gestvisit;
 //import it.unibs.mylib.*;
 import it.unibs.mylib.InputDati;
 
-import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -11,14 +10,12 @@ import java.util.concurrent.TimeUnit;
 
 public class VisitManager {
 
-    // Attributi------------------------------------------------------------------------------
-    private ArrayList<Volontario> volontari = new ArrayList<>();    
-    private ArrayList<Configuratore> configuratori = new ArrayList<>();
-    private ArrayList<TemporaryCredential> temporaryCredentials = new ArrayList<>();
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor(); // Pool con thread caching
+    // Attributi------------------------------------------------------------------------------  
+    private final ExecutorService executorService = Executors.newFixedThreadPool(4); // Pool con thread caching
     private final DatabaseUpdater databaseUpdater = new DatabaseUpdater(executorService);
     private final Utilita utilita = new Utilita(databaseUpdater);
     private final CredentialManager credentialManager = new CredentialManager(databaseUpdater);
+
     
     
 
@@ -49,45 +46,7 @@ public class VisitManager {
 
     //Autenticazione-------------------------------------------------------------------------
     public void autentica() {
-        String nomeUtente = InputDati.leggiStringaNonVuota("Inserisci il nome utente (email): ");
-        String password = InputDati.leggiStringaNonVuota("Inserisci la password: ");
-        String tipo_utente = credentialManager.verificaCredenziali(nomeUtente, password);
-        Boolean credenzialiModificate = credentialManager.isPasswordModificata(nomeUtente);
-    
-        if (tipo_utente == null) {
-            System.out.println("Credenziali non valide.");
-        } else {
-            Menu menu;
-            if (tipo_utente.equals("Volontario")) {
-                System.out.println("Accesso come Volontario.");
-
-                // Cerca il volontario corrispondente all'email
-                Volontario volontario = databaseUpdater.getVolontariMap().get(nomeUtente);
-                if (volontario == null) {
-                    System.out.println("Errore: volontario non trovato.");
-                    return;
-                }
-    
-                // Controlla se il volontario ha credenziali temporanee
-                if (credenzialiModificate) {
-                    System.out.println("Hai credenziali temporanee. Ti preghiamo di modificarle.");
-                    modificaCredenzialiVolontario(volontario);
-                }
-    
-                menu = new MenuVolontario();
-            } else if (tipo_utente.equals("Configuratore")) {
-                System.out.println("Accesso come Configuratore.");
-                menu = new MenuConfiguratore();
-            } else if(tipo_utente.equals("TEMP")){
-                System.out.println("Accesso come utente temporaneo.");
-                modificaCredenzialiConfiguratore();
-                menu = new MenuConfiguratore();
-            } else {
-                System.out.println("Ruolo non riconosciuto: " + tipo_utente);
-                return;
-            }
-            menu.mostraMenu();
-        }
+        credentialManager.autentica();
     }
 
     
@@ -98,10 +57,9 @@ public class VisitManager {
 
         Luogo nuovoLuogo = new Luogo(nome, descrizione);
         databaseUpdater.getLuoghiMap().put(nome, nuovoLuogo);
+        databaseUpdater.sincronizzaConDatabase();    
         System.out.println("Luogo aggiunto: " + nuovoLuogo);
 
-        databaseUpdater.aggiungiLuogo(nuovoLuogo);
-        
     }
 
     public void mostraLuoghi() {
@@ -117,10 +75,13 @@ public class VisitManager {
         String password = InputDati.leggiStringaNonVuota("inserire la password: ");
         
         Volontario nuovoVolontario = new Volontario(nome, cognome, email, nomeUtente, password);
-        volontari.add(nuovoVolontario);
+        // Aggiungi il volontario alla HashMap
+        databaseUpdater.getVolontariMap().put(email, nuovoVolontario);
 
-        databaseUpdater.aggiungiVolontario(nuovoVolontario);
-        
+        // Sincronizza con il database
+        databaseUpdater.sincronizzaConDatabase();
+
+        System.out.println("Volontario aggiunto: " + nuovoVolontario);
     }
 
     public void mostraVolontari() {
@@ -160,18 +121,4 @@ public class VisitManager {
         utilita.visualizzaArchivioStorico();
     }    
 
-    //Logiche per le credenziali-------------------------------------------------------------------------
-    public void modificaCredenzialiConfiguratore() {
-        credentialManager.saveNewConfigCredential(configuratori);
-    }
-
-    public void modificaCredenzialiVolontario(Volontario volontario) {
-        credentialManager.saveNewVolCredential(volontario);
-    }
-
-    // public void leggiCredenziali(){
-    //     credentialManager.caricaCredenzialiVolontario(volontari);
-    //     credentialManager.caricaCredenzialiTemporanee(temporaryCredentials);
-    //     credentialManager.caricaCredenzialiConfiguratore(configuratori);
-    // }
 }

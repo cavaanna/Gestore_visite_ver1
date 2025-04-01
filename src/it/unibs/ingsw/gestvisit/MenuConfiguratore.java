@@ -6,7 +6,7 @@ import it.unibs.mylib.MyMenu;
 
 public class MenuConfiguratore implements Menu {
     private static final String[] SELECT = {"Aggiungi Luogo", "Aggiungi Volontario", "Aggiungi Visita", 
-    "Visualizza Luoghi", "Visualizza Volontari", "Assegna Visita", "Visualizza Visite", 
+    "Visualizza Luoghi", "Visualizza Volontari", "Visualizza Visite", 
     "Modifica numero massimo di persone per visita", 
     "Modifica stato della visita", "Visualizza visite per stato", "Visualizza archivio storico"};
     private VisitManager visitManager = new VisitManager();
@@ -32,17 +32,17 @@ public class MenuConfiguratore implements Menu {
                 } else if (chosed == 5) {
                     visitManager.mostraVolontari();
                 } else if (chosed == 6) {
-                    // visitManager.assegnaVisita();
-                } else if (chosed == 7) {
                     visitManager.mostraVisite();
-                } else if (chosed == 8) {
+                } else if (chosed == 7) {
                     visitManager.modificaNumeroMaxPersonePerVisita();
-                }else if (chosed == 9) {
+                } else if (chosed == 8) {
                     visitManager.modificaStatoVisita();
-                }else if (chosed == 10) {
+                }else if (chosed == 9) {
                     visitManager.visualizzaVisitePerStato();
-                }else if(chosed == 11){
+                }else if (chosed == 10) {
                     visitManager.visualizzaArchivioStorico();
+                }else if(chosed == 11){
+                    
                 }else if (chosed == 0) {
                     goOn = false;
                 }

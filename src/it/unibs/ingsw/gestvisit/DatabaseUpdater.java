@@ -15,6 +15,9 @@ public class DatabaseUpdater {
     private ConcurrentHashMap<String, Configuratore> configuratoriMap = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, Luogo> luoghiMap = new ConcurrentHashMap<>();
     private ConcurrentHashMap<Integer, Visite> visiteMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, TemporaryCredential> temporaryCredentials = new ConcurrentHashMap<>();
+    
+
     private final ExecutorService executorService;
     private Thread aggiornamentoThread;
     private volatile boolean eseguiAggiornamento = true; // Variabile per controllare il ciclo
@@ -23,21 +26,58 @@ public class DatabaseUpdater {
         this.executorService = executorService;
     }
 
+    //Logiche Thread------------------------------------------------------------------
+    // Metodo per sincronizzare i dati dal database in un thread separato
     public void sincronizzaDalDatabase() {
         executorService.submit(() -> {
             try {
                 // Logica per sincronizzare i dati dal database
-                // Esegui qui il caricamento delle tabelle (volontari, configuratori, ecc.)
                 caricaVolontari();
                 caricaConfiguratori();
                 caricaLuoghi();
                 caricaVisite();
             } catch (Exception e) {
-                System.out.println("Errore durante la sincronizzazione dal database: " + e.getMessage());
+                System.err.println("Errore durante la sincronizzazione dal database: " + e.getMessage());
             }
         });
     }
 
+    // Metodo per sincronizzare i dati con il database in modo sincrono
+    public void sincronizzaConDatabase() {
+        executorService.submit(() -> {
+            try {
+                // Sincronizza i volontari
+                for (Volontario volontario : volontariMap.values()) {
+                    aggiungiVolontario(volontario);
+                    aggiornaPswVolontario(volontario.getEmail(), volontario.getPassword());
+                }
+    
+                // Sincronizza i configuratori
+                for (Configuratore configuratore : configuratoriMap.values()) {
+                    aggiornaConfiguratore(configuratore.getEmail(), configuratore);
+                }
+    
+                // Sincronizza i luoghi
+                for (Luogo luogo : luoghiMap.values()) {
+                    aggiungiLuogo(luogo);
+                    aggiornaLuogo(luogo.getNome(), luogo);
+                }
+    
+                // Sincronizza le visite
+                for (Visite visita : visiteMap.values()) {
+                    aggiungiVisita(visita);
+                    aggiornaVisita(visita.getId(), visita);
+                    aggiornaMaxPersonePerVisita(visita.getMaxPersone());
+                }
+    
+                System.out.println("Sincronizzazione con il database completata.");
+            } catch (Exception e) {
+                System.err.println("Errore durante la sincronizzazione con il database: " + e.getMessage());
+            }
+        });
+    }
+
+    // Metodo per avviare la sincronizzazione periodica con un ciclo e sleep
     public void avviaSincronizzazioneConSleep() {
         eseguiAggiornamento = true; // Assicura che il ciclo sia attivo
         aggiornamentoThread = new Thread(() -> {
@@ -54,6 +94,7 @@ public class DatabaseUpdater {
         aggiornamentoThread.start();
     }
 
+    // Metodo per fermare la sincronizzazione periodica con un ciclo e sleep
     public void arrestaSincronizzazioneConSleep() {
         eseguiAggiornamento = false; // Ferma il ciclo
         if (aggiornamentoThread != null) {
@@ -61,9 +102,29 @@ public class DatabaseUpdater {
             try {
                 aggiornamentoThread.join(); // Attende la terminazione del thread
             } catch (InterruptedException e) {
-                System.out.println("Errore durante l'arresto del thread di aggiornamento.");
+                System.err.println("Errore durante l'arresto del thread di aggiornamento.");
                 Thread.currentThread().interrupt(); // Ripristina lo stato di interruzione
             }
+        }
+    }
+
+    //Logiche per Credenziali Temporanee--------------------------------------------------
+    public void caricaCredenzialiTemporanee() {
+        String sql = "SELECT username, password FROM credenziali_temporanee";
+    
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+    
+            while (rs.next()) {
+                String username = rs.getString("username");
+                String password = rs.getString("password");
+                temporaryCredentials.put(username, new TemporaryCredential(username, password));
+            }
+    
+            System.out.println("Credenziali temporanee caricate con successo.");
+        } catch (SQLException e) {
+            System.out.println("Errore durante il caricamento delle credenziali temporanee: " + e.getMessage());
         }
     }
 
@@ -90,12 +151,12 @@ public class DatabaseUpdater {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Errore durante il caricamento dei volontari: " + e.getMessage());
+            System.err.println("Errore durante il caricamento dei volontari: " + e.getMessage());
         }
     }
 
     // Metodo per aggiungere un volontario al database
-    public void aggiungiVolontario(Volontario volontario) {
+    private void aggiungiVolontario(Volontario volontario) {
         String sql = "INSERT INTO volontari (nome, cognome, email, password, tipi_di_visite) VALUES (?, ?, ?, ?, ?)";
         executorService.submit(() -> {
             try (Connection conn = DatabaseConnection.connect();
@@ -107,45 +168,47 @@ public class DatabaseUpdater {
                 pstmt.setString(5, volontario.getTipiDiVisite());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                System.out.println("Errore durante l'aggiunta del volontario: " + e.getMessage());
+                System.err.println("Errore durante l'aggiunta del volontario: " + e.getMessage());
             }
         });
     }
 
     // Metodo per aggiornare un volontario nel database
-    public void aggiornaPswVolontario(String email, String nuovaPassword) {
-        String sqlVolontari = "UPDATE volontari SET password_modificata = ? WHERE email = ?";
-        String sqlUtentiUnificati = "UPDATE utenti_unificati SET password_modificata = ? WHERE email = ?";
+    private void aggiornaPswVolontario(String email, String nuovaPassword) {
+        String sqlVolontari = "UPDATE volontari SET password = ?, password_modificata = ? WHERE email = ?";
+        String sqlUtentiUnificati = "UPDATE utenti_unificati SET password = ?, password_modificata = ? WHERE email = ?";
     
         executorService.submit(() -> {
             try (Connection conn = DatabaseConnection.connect()) {
                 // Aggiorna la tabella "volontari"
                 try (PreparedStatement pstmtVolontari = conn.prepareStatement(sqlVolontari)) {
                     pstmtVolontari.setString(1, nuovaPassword);
-                    pstmtVolontari.setString(2, email);
+                    pstmtVolontari.setBoolean(2, true); // Imposta password_modificata a true
+                    pstmtVolontari.setString(3, email);
                     int rowsUpdatedVolontari = pstmtVolontari.executeUpdate();
     
                     if (rowsUpdatedVolontari > 0) {
-                        System.out.println("Password aggiornata con successo nella tabella 'volontari'.");
+                        System.err.println("Password aggiornata con successo nella tabella 'volontari'.");
                     } else {
-                        System.out.println("Errore: Nessun volontario trovato con l'email specificata.");
+                        System.err.println("Errore: Nessun volontario trovato con l'email specificata.");
                     }
                 }
     
                 // Aggiorna la tabella "utenti_unificati"
                 try (PreparedStatement pstmtUtenti = conn.prepareStatement(sqlUtentiUnificati)) {
                     pstmtUtenti.setString(1, nuovaPassword);
-                    pstmtUtenti.setString(2, email);
+                    pstmtUtenti.setBoolean(2, true); // Imposta password_modificata a true
+                    pstmtUtenti.setString(3, email);
                     int rowsUpdatedUtenti = pstmtUtenti.executeUpdate();
     
                     if (rowsUpdatedUtenti > 0) {
-                        System.out.println("Password aggiornata con successo nella tabella 'utenti_unificati'.");
+                        System.err.println("Password aggiornata con successo nella tabella 'utenti_unificati'.");
                     } else {
-                        System.out.println("Errore: Nessun utente trovato con l'email specificata nella tabella 'utenti_unificati'.");
+                        System.err.println("Errore: Nessun utente trovato con l'email specificata nella tabella 'utenti_unificati'.");
                     }
                 }
             } catch (SQLException e) {
-                System.out.println("Errore durante l'aggiornamento della password: " + e.getMessage());
+                System.err.println("Errore durante l'aggiornamento della password: " + e.getMessage());
             }
         });
     }
@@ -177,25 +240,45 @@ public class DatabaseUpdater {
     }
 
     // Metodo per aggiornare un configuratore nel database
-    public void aggiornaConfiguratore(String email, Configuratore configuratoreAggiornato) {
-        String sql = "UPDATE configuratori SET nome = ?, cognome = ?, password = ? WHERE email = ?";
+    private void aggiornaConfiguratore(String email, Configuratore configuratoreAggiornato) {
+        String sqlConfiguratori = "UPDATE configuratori SET nome = ?, cognome = ?, password = ?, email = ? WHERE email = ?";
+        String sqlUtentiUnificati = "UPDATE utenti_unificati SET nome = ?, cognome = ?, password = ?, email = ? WHERE email = ?";
+    
         executorService.submit(() -> {
-            try (Connection conn = DatabaseConnection.connect();
-                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setString(1, configuratoreAggiornato.getNome());
-                pstmt.setString(2, configuratoreAggiornato.getCognome());
-                pstmt.setString(3, configuratoreAggiornato.getPassword());
-                pstmt.setString(4, email);
+            try (Connection conn = DatabaseConnection.connect()) {
+                // Aggiorna la tabella "configuratori"
+                try (PreparedStatement pstmtConfiguratori = conn.prepareStatement(sqlConfiguratori)) {
+                    pstmtConfiguratori.setString(1, configuratoreAggiornato.getNome());
+                    pstmtConfiguratori.setString(2, configuratoreAggiornato.getCognome());
+                    pstmtConfiguratori.setString(3, configuratoreAggiornato.getPassword());
+                    pstmtConfiguratori.setString(4, configuratoreAggiornato.getEmail()); // Nuova email
+                    pstmtConfiguratori.setString(5, email); // Email corrente
+                    int rowsUpdatedConfiguratori = pstmtConfiguratori.executeUpdate();
     
-                int rowsUpdated = pstmt.executeUpdate();
+                    if (rowsUpdatedConfiguratori > 0) {
+                        System.err.println("Configuratore aggiornato con successo nella tabella 'configuratori'.");
+                    } else {
+                        System.err.println("Errore: Nessun configuratore trovato con l'email specificata.");
+                    }
+                }
     
-                if (rowsUpdated > 0) {
-                    System.out.println("Configuratore aggiornato con successo.");
-                } else {
-                    System.out.println("Errore: Nessun configuratore trovato con l'email specificata.");
+                // Aggiorna la tabella "utenti_unificati"
+                try (PreparedStatement pstmtUtentiUnificati = conn.prepareStatement(sqlUtentiUnificati)) {
+                    pstmtUtentiUnificati.setString(1, configuratoreAggiornato.getNome());
+                    pstmtUtentiUnificati.setString(2, configuratoreAggiornato.getCognome());
+                    pstmtUtentiUnificati.setString(3, configuratoreAggiornato.getPassword());
+                    pstmtUtentiUnificati.setString(4, configuratoreAggiornato.getEmail()); // Nuova email
+                    pstmtUtentiUnificati.setString(5, email); // Email corrente
+                    int rowsUpdatedUtentiUnificati = pstmtUtentiUnificati.executeUpdate();
+    
+                    if (rowsUpdatedUtentiUnificati > 0) {
+                        System.err.println("Configuratore aggiornato con successo nella tabella 'utenti_unificati'.");
+                    } else {
+                        System.err.println("Errore: Nessun utente trovato con l'email specificata nella tabella 'utenti_unificati'.");
+                    }
                 }
             } catch (SQLException e) {
-                System.out.println("Errore durante l'aggiornamento del configuratore: " + e.getMessage());
+                System.err.println("Errore durante l'aggiornamento del configuratore: " + e.getMessage());
             }
         });
     }
@@ -220,12 +303,12 @@ public class DatabaseUpdater {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Errore durante il caricamento dei luoghi: " + e.getMessage());
+            System.err.println("Errore durante il caricamento dei luoghi: " + e.getMessage());
         }
     }
 
     // Metodo per aggiornare un luogo nel database
-    public void aggiornaLuogo(String nome, Luogo luogoAggiornato) {
+    private void aggiornaLuogo(String nome, Luogo luogoAggiornato) {
         String sql = "UPDATE luoghi SET descrizione = ? WHERE nome = ?";
         executorService.submit(() -> {
             try (Connection conn = DatabaseConnection.connect();
@@ -236,18 +319,18 @@ public class DatabaseUpdater {
                 int rowsUpdated = pstmt.executeUpdate();
     
                 if (rowsUpdated > 0) {
-                    System.out.println("Luogo aggiornato con successo.");
+                    System.err.println("Luogo aggiornato con successo.");
                 } else {
-                    System.out.println("Errore: Nessun luogo trovato con il nome specificato.");
+                    System.err.println("Errore: Nessun luogo trovato con il nome specificato.");
                 }
             } catch (SQLException e) {
-                System.out.println("Errore durante l'aggiornamento del luogo: " + e.getMessage());
+                System.err.println("Errore durante l'aggiornamento del luogo: " + e.getMessage());
             }
         });
     }
 
     // Metodo per aggiungere un luogo al database
-    public void aggiungiLuogo(Luogo luogo) {
+    private void aggiungiLuogo(Luogo luogo) {
         String sql = "INSERT INTO luoghi (nome, descrizione) VALUES (?, ?)";
         executorService.submit(() -> {
             try (Connection conn = DatabaseConnection.connect();
@@ -256,7 +339,7 @@ public class DatabaseUpdater {
                 pstmt.setString(2, luogo.getDescrizione());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                System.out.println("Errore durante l'aggiunta del luogo: " + e.getMessage());
+                System.err.println("Errore durante l'aggiunta del luogo: " + e.getMessage());
             }
         });
     }
@@ -286,13 +369,12 @@ public class DatabaseUpdater {
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Errore durante il caricamento delle visite: " + e.getMessage());
+            System.err.println("Errore durante il caricamento delle visite: " + e.getMessage());
         }
     }
 
-
     // Metodo per aggiungere una visita al database
-    public void aggiungiVisita(Visite visita) {
+    private void aggiungiVisita(Visite visita) {
         String sql = "INSERT INTO visite (luogo, tipo_visita, volontario, data, stato, max_persone) VALUES (?, ?, ?, ?, ?, ?)";
         executorService.submit(() -> {
             try (Connection conn = DatabaseConnection.connect();
@@ -305,13 +387,13 @@ public class DatabaseUpdater {
                 pstmt.setInt(6, 10); // Valore predefinito per max_persone
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                System.out.println("Errore durante l'aggiunta della visita: " + e.getMessage());
+                System.err.println("Errore durante l'aggiunta della visita: " + e.getMessage());
             }
         });
     }
 
     // Metodo per aggiornare una visita specifica
-    public void aggiornaVisita(int visitaId, Visite visitaAggiornata) {
+    private void aggiornaVisita(int visitaId, Visite visitaAggiornata) {
         String sql = "UPDATE visite SET luogo = ?, tipo_visita = ?, volontario = ?, data = ?, stato = ?, max_persone = ? WHERE id = ?";
         executorService.submit(() -> {
             try (Connection conn = DatabaseConnection.connect();
@@ -327,18 +409,18 @@ public class DatabaseUpdater {
                 int rowsUpdated = pstmt.executeUpdate();
 
                 if (rowsUpdated > 0) {
-                    System.out.println("Visita aggiornata con successo.");
+                    System.err.println("Visita aggiornata con successo.");
                 } else {
-                    System.out.println("Errore: Nessuna visita trovata con l'ID specificato.");
+                    System.err.println("Errore: Nessuna visita trovata con l'ID specificato.");
                 }
             } catch (SQLException e) {
-                System.out.println("Errore durante l'aggiornamento della visita: " + e.getMessage());
+                System.err.println("Errore durante l'aggiornamento della visita: " + e.getMessage());
             }
         });
     }
 
     // Metodo per aggiornare il numero massimo di persone per tutte le visite
-    public void aggiornaMaxPersonePerVisita(int maxPersonePerVisita) {
+    private void aggiornaMaxPersonePerVisita(int maxPersonePerVisita) {
         String sql = "UPDATE visite SET max_persone = ?";
         executorService.submit(() -> {
             try (Connection conn = DatabaseConnection.connect();
@@ -347,17 +429,75 @@ public class DatabaseUpdater {
                 int rowsUpdated = pstmt.executeUpdate();
 
                 if (rowsUpdated > 0) {
-                    System.out.println("Numero massimo di persone per visita aggiornato con successo.");
+                    System.err.println("Numero massimo di persone per visita aggiornato con successo.");
                 } else {
-                    System.out.println("Nessuna visita trovata da aggiornare.");
+                    System.err.println("Nessuna visita trovata da aggiornare.");
                 }
             } catch (SQLException e) {
-                System.out.println("Errore durante l'aggiornamento del numero massimo di persone per visita: " + e.getMessage());
+                System.err.println("Errore durante l'aggiornamento del numero massimo di persone per visita: " + e.getMessage());
             }
         });
     }
 
+    public void sincronizzaVisita(int visitaId, Visite visitaAggiornata) {
+        aggiornaVisita(visitaId, visitaAggiornata);
+    }
+
+    public void sincronizzaMaxPersonePerVisita(int maxPersonePerVisita) {
+        aggiornaMaxPersonePerVisita(maxPersonePerVisita);
+    }
+
+    
+
+
 //Getters e Setters--------------------------------------------------
+    public String getTipoUtente(String email, String password){
+        String tipo_utente = null; // Inizializza a null per evitare NullPointerException
+        String sql = "SELECT tipo_utente FROM utenti_unificati WHERE email = ? AND password = ?";
+    
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    
+            // Imposta i parametri della query
+            pstmt.setString(1, email);
+            pstmt.setString(2, password);
+    
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    tipo_utente = rs.getString("tipo_utente"); // Recupera il tipo_utente
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Errore durante la verifica delle credenziali: " + e.getMessage());
+        }
+        return tipo_utente; // Restituisce il tipo_utente o null se non trovato
+    }
+
+    public boolean isPasswordModificata(String email) {
+        String sql = "SELECT password_modificata FROM utenti_unificati WHERE email = ?";
+        boolean passwordModificata = false; // Valore di default
+    
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    
+            // Imposta il parametro della query
+            pstmt.setString(1, email);
+    
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    passwordModificata = rs.getBoolean("password_modificata"); // Recupera il valore del campo password_modificata
+                } else {
+                    System.out.println("Nessun record trovato per l'email: " + email);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Errore durante la verifica del campo password_modificata: " + e.getMessage());
+        }
+    
+        return passwordModificata;
+    }
+    
+
     // Metodo per recuperare il numero massimo di persone per visita dal database
     public int getMaxPersoneDefault() {
         String sql = "SELECT valore FROM configurazioni WHERE chiave = 'max_persone_default'";
@@ -369,7 +509,7 @@ public class DatabaseUpdater {
                 return rs.getInt("valore");
             }
         } catch (SQLException e) {
-            System.out.println("Errore durante il recupero del numero massimo di persone: " + e.getMessage());
+            System.err.println("Errore durante il recupero del numero massimo di persone: " + e.getMessage());
         }
         return 10; // Valore di default se non trovato nel database
     }
@@ -377,16 +517,36 @@ public class DatabaseUpdater {
     public ConcurrentHashMap<String, Volontario> getVolontariMap() {
         return volontariMap;
     }
-
+    
+    public void setVolontariMap(ConcurrentHashMap<String, Volontario> volontariMap) {
+        this.volontariMap = volontariMap;
+    }
+    
     public ConcurrentHashMap<String, Configuratore> getConfiguratoriMap() {
         return configuratoriMap;
     }
-
+    
+    public void setConfiguratoriMap(ConcurrentHashMap<String, Configuratore> configuratoriMap) {
+        this.configuratoriMap = configuratoriMap;
+    }
+    
     public ConcurrentHashMap<String, Luogo> getLuoghiMap() {
         return luoghiMap;
     }
-
+    
+    public void setLuoghiMap(ConcurrentHashMap<String, Luogo> luoghiMap) {
+        this.luoghiMap = luoghiMap;
+    }
+    
     public ConcurrentHashMap<Integer, Visite> getVisiteMap() {
         return visiteMap;
+    }
+    
+    public void setVisiteMap(ConcurrentHashMap<Integer, Visite> visiteMap) {
+        this.visiteMap = visiteMap;
+    }
+
+    public ConcurrentHashMap<String, TemporaryCredential> getTemporaryCredentials() {
+        return temporaryCredentials;
     }
 }

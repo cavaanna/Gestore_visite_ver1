@@ -1,36 +1,38 @@
 package src.it.unibs.ingsw.gestvisit;
 
 import it.unibs.mylib.MyMenu;
+import java.time.LocalDate;
 
 public class MenuVolontario implements Menu {
     private static final String[] OPZIONI_VOLONTARIO = {
         "Visualizza visite assegnate",
-        "Aggiorna stato visita",
-        "Esci"
+        "Inserisci preferenze",
+        "Inserisci disponibilità"
     };
 
     @Override
     public void mostraMenu() {
-        boolean continua = true;
+        // Inizializza il menu con le opzioni disponibili
+        boolean goOn = true;
+        System.out.printf("oggi è il: %d/%d/%d\n", LocalDate.now().getDayOfMonth(), LocalDate.now().getMonthValue(), LocalDate.now().getYear());
         do {
-            MyMenu menu = new MyMenu("Menu Volontario", OPZIONI_VOLONTARIO);
-            int scelta = menu.scegli();
+            MyMenu menu = new MyMenu("Digitare l'opzione desiderata\n", OPZIONI_VOLONTARIO);
+            int chosed = menu.scegli();
 
-            switch (scelta) {
-                case 1:
-                    System.out.println("Visualizza visite assegnate.");
-                    // Implementa la logica per visualizzare le visite
-                    break;
-                case 2:
-                    System.out.println("Aggiorna stato visita.");
-                    // Implementa la logica per aggiornare lo stato delle visite
-                    break;
-                case 3:
-                    continua = false;
-                    break;
-                default:
-                    System.out.println("Scelta non valida.");
-            }
-        } while (continua);
+            if (chosed != 0) {
+                if (chosed == 1) {
+                    //Logica per visualizzare le visite assegnate al volontario
+                } else if (chosed == 2) {
+                    //Logica per inserire le preferenze del volontario
+                } else if (chosed == 3) {
+                    //Logica per inserire le disponibilità del volontario
+                } else if (chosed == 4) {
+                    //TODO
+                } else if (chosed == 0) {
+                    goOn = false;
+                }
+            } else
+                goOn = false;
+        } while (goOn);
     }
 }
