@@ -30,6 +30,7 @@ public class DatabaseUpdater {
         });
     }
 
+    // Metodo per caricare i volontari dal database e memorizzarli nella HashMap
     private void caricaVolontari() {
         String sql = "SELECT nome, cognome, email, password, tipi_di_visite FROM volontari";
         try (Connection conn = DatabaseConnection.connect();
@@ -55,6 +56,32 @@ public class DatabaseUpdater {
         }
     }
 
+    // Metodo per aggiornare un volontario nel database
+    public void aggiornaVolontario(String email, Volontario volontarioAggiornato) {
+        String sql = "UPDATE volontari SET nome = ?, cognome = ?, password = ?, tipi_di_visite = ? WHERE email = ?";
+        executorService.submit(() -> {
+            try (Connection conn = DatabaseConnection.connect();
+                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, volontarioAggiornato.getNome());
+                pstmt.setString(2, volontarioAggiornato.getCognome());
+                pstmt.setString(3, volontarioAggiornato.getPassword());
+                pstmt.setString(4, volontarioAggiornato.getTipiDiVisite());
+                pstmt.setString(5, email);
+    
+                int rowsUpdated = pstmt.executeUpdate();
+    
+                if (rowsUpdated > 0) {
+                    System.out.println("Volontario aggiornato con successo.");
+                } else {
+                    System.out.println("Errore: Nessun volontario trovato con l'email specificata.");
+                }
+            } catch (SQLException e) {
+                System.out.println("Errore durante l'aggiornamento del volontario: " + e.getMessage());
+            }
+        });
+    }
+
+    // Metodo per caricare i configuratori dal database e memorizzarli nella HashMap
     private void caricaConfiguratori() {
         String sql = "SELECT nome, cognome, email, password FROM configuratori";
         try (Connection conn = DatabaseConnection.connect();
@@ -79,6 +106,31 @@ public class DatabaseUpdater {
         }
     }
 
+    // Metodo per aggiornare un configuratore nel database
+    public void aggiornaConfiguratore(String email, Configuratore configuratoreAggiornato) {
+        String sql = "UPDATE configuratori SET nome = ?, cognome = ?, password = ? WHERE email = ?";
+        executorService.submit(() -> {
+            try (Connection conn = DatabaseConnection.connect();
+                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, configuratoreAggiornato.getNome());
+                pstmt.setString(2, configuratoreAggiornato.getCognome());
+                pstmt.setString(3, configuratoreAggiornato.getPassword());
+                pstmt.setString(4, email);
+    
+                int rowsUpdated = pstmt.executeUpdate();
+    
+                if (rowsUpdated > 0) {
+                    System.out.println("Configuratore aggiornato con successo.");
+                } else {
+                    System.out.println("Errore: Nessun configuratore trovato con l'email specificata.");
+                }
+            } catch (SQLException e) {
+                System.out.println("Errore durante l'aggiornamento del configuratore: " + e.getMessage());
+            }
+        });
+    }
+
+    // Metodo per caricare i luoghi dal database e memorizzarli nella HashMap
     private void caricaLuoghi() {
         String sql = "SELECT nome, descrizione FROM luoghi";
         try (Connection conn = DatabaseConnection.connect();
@@ -101,32 +153,33 @@ public class DatabaseUpdater {
         }
     }
 
-private void caricaVisite() {
-    String sql = "SELECT id, luogo, tipo_visita, volontario, data, stato, max_persone FROM visite";
-    try (Connection conn = DatabaseConnection.connect();
-         PreparedStatement pstmt = conn.prepareStatement(sql);
-         ResultSet rs = pstmt.executeQuery()) {
+    // Metodo per caricare un luogo nel database e memorizzarlo nella HashMap
+    private void caricaVisite() {
+        String sql = "SELECT id, luogo, tipo_visita, volontario, data, stato, max_persone FROM visite";
+        try (Connection conn = DatabaseConnection.connect();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            ResultSet rs = pstmt.executeQuery()) {
 
-        synchronized (visiteMap) {
-            visiteMap.clear();
-            while (rs.next()) {
-                int id = rs.getInt("id"); // ID della visita
-                String luogo = rs.getString("luogo");
-                String tipoVisita = rs.getString("tipo_visita");
-                String volontario = rs.getString("volontario");
-                LocalDate data = rs.getDate("data") != null ? rs.getDate("data").toLocalDate() : null; // Converte la data in LocalDate
-                int maxPersone = rs.getInt("max_persone");
-                String stato = rs.getString("stato");
+            synchronized (visiteMap) {
+                visiteMap.clear();
+                while (rs.next()) {
+                    int id = rs.getInt("id"); // ID della visita
+                    String luogo = rs.getString("luogo");
+                    String tipoVisita = rs.getString("tipo_visita");
+                    String volontario = rs.getString("volontario");
+                    LocalDate data = rs.getDate("data") != null ? rs.getDate("data").toLocalDate() : null; // Converte la data in LocalDate
+                    int maxPersone = rs.getInt("max_persone");
+                    String stato = rs.getString("stato");
 
-                // Usa il costruttore completo di Visite
-                Visite visita = new Visite(id, luogo, tipoVisita, volontario, data, maxPersone, stato);
-                visiteMap.put(id, visita);
+                    // Usa il costruttore completo di Visite
+                    Visite visita = new Visite(id, luogo, tipoVisita, volontario, data, maxPersone, stato);
+                    visiteMap.put(id, visita);
+                }
             }
+        } catch (SQLException e) {
+            System.out.println("Errore durante il caricamento delle visite: " + e.getMessage());
         }
-    } catch (SQLException e) {
-        System.out.println("Errore durante il caricamento delle visite: " + e.getMessage());
     }
-}
 
     // Metodo per aggiungere un volontario al database
     public void aggiungiVolontario(Volontario volontario) {
@@ -142,6 +195,28 @@ private void caricaVisite() {
                 pstmt.executeUpdate();
             } catch (SQLException e) {
                 System.out.println("Errore durante l'aggiunta del volontario: " + e.getMessage());
+            }
+        });
+    }
+
+    // Metodo per aggiornare un luogo nel database
+    public void aggiornaLuogo(String nome, Luogo luogoAggiornato) {
+        String sql = "UPDATE luoghi SET descrizione = ? WHERE nome = ?";
+        executorService.submit(() -> {
+            try (Connection conn = DatabaseConnection.connect();
+                    PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, luogoAggiornato.getDescrizione());
+                pstmt.setString(2, nome);
+    
+                int rowsUpdated = pstmt.executeUpdate();
+    
+                if (rowsUpdated > 0) {
+                    System.out.println("Luogo aggiornato con successo.");
+                } else {
+                    System.out.println("Errore: Nessun luogo trovato con il nome specificato.");
+                }
+            } catch (SQLException e) {
+                System.out.println("Errore durante l'aggiornamento del luogo: " + e.getMessage());
             }
         });
     }
@@ -180,26 +255,6 @@ private void caricaVisite() {
         });
     }
 
-    // Metodo per aggiornare il numero massimo di persone per tutte le visite
-    public void aggiornaMaxPersonePerVisita(int maxPersonePerVisita) {
-        String sql = "UPDATE visite SET max_persone = ?";
-        executorService.submit(() -> {
-            try (Connection conn = DatabaseConnection.connect();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setInt(1, maxPersonePerVisita);
-                int rowsUpdated = pstmt.executeUpdate();
-
-                if (rowsUpdated > 0) {
-                    System.out.println("Numero massimo di persone per visita aggiornato con successo.");
-                } else {
-                    System.out.println("Nessuna visita trovata da aggiornare.");
-                }
-            } catch (SQLException e) {
-                System.out.println("Errore durante l'aggiornamento del numero massimo di persone per visita: " + e.getMessage());
-            }
-        });
-    }
-
     // Metodo per aggiornare una visita specifica
     public void aggiornaVisita(int visitaId, Visite visitaAggiornata) {
         String sql = "UPDATE visite SET luogo = ?, tipo_visita = ?, volontario = ?, data = ?, stato = ?, max_persone = ? WHERE id = ?";
@@ -227,6 +282,27 @@ private void caricaVisite() {
         });
     }
 
+    // Metodo per aggiornare il numero massimo di persone per tutte le visite
+    public void aggiornaMaxPersonePerVisita(int maxPersonePerVisita) {
+        String sql = "UPDATE visite SET max_persone = ?";
+        executorService.submit(() -> {
+            try (Connection conn = DatabaseConnection.connect();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, maxPersonePerVisita);
+                int rowsUpdated = pstmt.executeUpdate();
+
+                if (rowsUpdated > 0) {
+                    System.out.println("Numero massimo di persone per visita aggiornato con successo.");
+                } else {
+                    System.out.println("Nessuna visita trovata da aggiornare.");
+                }
+            } catch (SQLException e) {
+                System.out.println("Errore durante l'aggiornamento del numero massimo di persone per visita: " + e.getMessage());
+            }
+        });
+    }
+
+    // Metodo per recuperare il numero massimo di persone per visita dal database
     public int getMaxPersoneDefault() {
         String sql = "SELECT valore FROM configurazioni WHERE chiave = 'max_persone_default'";
         try (Connection conn = DatabaseConnection.connect();

@@ -58,7 +58,6 @@ public class VisitManager {
                 Volontario volontario = databaseUpdater.getVolontariMap().get(nomeUtente);
                 if (volontario == null) {
                     System.out.println("Errore: volontario non trovato.");
-                    return;
                 }
     
                 // Controlla se il volontario ha credenziali temporanee
