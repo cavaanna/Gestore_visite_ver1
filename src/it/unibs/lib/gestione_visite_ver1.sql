@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 31, 2025 at 05:37 PM
+-- Generation Time: Apr 02, 2025 at 12:51 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -81,9 +81,11 @@ CREATE TABLE `luoghi` (
 
 INSERT INTO `luoghi` (`nome`, `descrizione`) VALUES
 ('Acquario Marino', 'Un acquario con una grande varietà di specie marine.'),
+('Base Aeronautica', 'LoremIpsum'),
 ('Brescia', 'Citt� fantastica'),
 ('Castello di Brescia', 'Alla scoperta del fantastico Castello di Brescia'),
 ('Castello Storico', 'Un castello medievale ben conservato.'),
+('Ghedi', 'Bellissima citta'),
 ('Montichiari', 'LoremIpsum'),
 ('Museo d\'Arte Moderna', 'Un museo con una vasta collezione di opere d\'arte moderna.'),
 ('Parco Naturale', 'Un parco con sentieri escursionistici e fauna selvatica.'),
@@ -101,7 +103,7 @@ CREATE TABLE `utenti_unificati` (
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `tipo_utente` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `password_modificata` tinyint(1) DEFAULT 0
+  `password_modificata` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -109,12 +111,12 @@ CREATE TABLE `utenti_unificati` (
 --
 
 INSERT INTO `utenti_unificati` (`nome`, `cognome`, `email`, `password`, `tipo_utente`, `password_modificata`) VALUES
-('Mario', 'Rossi', 'mario.rossi@example.com', 'password123', 'Volontario', 0),
-('Luisa', 'Bianchi', 'luisa.bianchi@example.com', 'password456', 'Volontario', 0),
-('Giulia', 'Verdi', 'giulia.verdi@example.com', 'password789', 'Volontario', 0),
+('Admin', 'Configuratore', 'admin@example.com', 'admin123', 'Configuratore', 0),
 ('Alessandro', 'Neri', 'alessandro.neri@example.com', 'password321', 'Volontario', 0),
 ('Francesca', 'Gialli', 'francesca.gialli@example.com', 'password654', 'Volontario', 0),
-('Admin', 'Configuratore', 'admin@example.com', 'admin123', 'Configuratore', 0),
+('Giulia', 'Verdi', 'giulia.verdi@example.com', 'passmodificata789', 'Volontario', 1),
+('Luisa', 'Bianchi', 'luisa.bianchi@example.com', 'passmodificata456', 'Volontario', 1),
+('Mario', 'Rossi', 'mario.rossi@example.com', 'passmodificata123', 'Volontario', 1),
 ('Super', 'User', 'superuser@example.com', 'super456', 'Configuratore', 0),
 ('Nome Temporaneo', 'Cognome Temporaneo', 'tempuser1', 'temppass1', 'TEMP', 1),
 ('Nome Temporaneo', 'Cognome Temporaneo', 'tempuser2', 'temppass2', 'TEMP', 1),
@@ -141,17 +143,20 @@ CREATE TABLE `visite` (
 --
 
 INSERT INTO `visite` (`id`, `luogo`, `tipo_visita`, `volontario`, `data`, `max_persone`, `stato`) VALUES
-(1, 'Museo d\'Arte Moderna', 'Arte Moderna', 'Mario Rossi', '2025-03-16', 20, 'Confermata'),
-(2, 'Parco Naturale', 'Escursione', 'Luisa Bianchi', '2025-03-16', 20, 'Confermata'),
-(3, 'Castello Storico', 'Storia Medievale', 'Giulia Verdi', '2025-03-16', 20, 'Proposta'),
-(4, 'Acquario Marino', 'Biologia Marina', 'Alessandro Neri', '2025-03-16', 20, 'Proposta'),
-(5, 'Teatro Antico', 'Spettacolo Teatrale', 'Francesca Gialli', '2025-03-16', 20, 'Proposta'),
-(6, 'Acquario Marino', 'Biologia Marina', 'Mario Rossi', '2025-03-16', 20, 'Proposta'),
-(7, 'Acquario Marino', 'Biologia Marina', 'Mario Rossi', '2025-06-05', 20, 'Proposta'),
-(8, 'Castello Storico', 'Storia Medievale', 'Giulia Verdi', '2025-06-30', 20, 'Proposta'),
-(9, 'Castello di Brescia', 'Storico Medievale', 'Francesca Gialli', '2025-03-31', 20, 'Proposta'),
-(10, 'Montichiari', 'Visita citta', 'Mario Rossi', '2025-03-31', 10, 'Proposta'),
-(11, 'Montichiari', 'Caccia al tesoro Cittadina', 'luisa.bianchi@example.com', '2025-03-31', 10, 'Proposta');
+(1, 'Museo d\'Arte Moderna', 'Arte Moderna', 'Mario Rossi', '2025-03-16', 25, 'Effettuata'),
+(2, 'Parco Naturale', 'Escursione', 'Luisa Bianchi', '2025-03-16', 25, 'Confermata'),
+(3, 'Castello Storico', 'Storia Medievale', 'Giulia Verdi', '2025-03-16', 25, 'Proposta'),
+(4, 'Acquario Marino', 'Biologia Marina', 'Alessandro Neri', '2025-03-16', 25, 'Proposta'),
+(5, 'Teatro Antico', 'Spettacolo Teatrale', 'Francesca Gialli', '2025-03-16', 25, 'Proposta'),
+(6, 'Acquario Marino', 'Biologia Marina', 'Mario Rossi', '2025-03-16', 25, 'Proposta'),
+(7, 'Acquario Marino', 'Biologia Marina', 'Mario Rossi', '2025-06-05', 25, 'Proposta'),
+(8, 'Castello Storico', 'Storia Medievale', 'Giulia Verdi', '2025-06-30', 25, 'Proposta'),
+(9, 'Castello di Brescia', 'Storico Medievale', 'Francesca Gialli', '2025-03-31', 25, 'Proposta'),
+(10, 'Montichiari', 'Visita citta', 'Mario Rossi', '2025-03-31', 25, 'Proposta'),
+(11, 'Montichiari', 'Caccia al tesoro Cittadina', 'luisa.bianchi@example.com', '2025-03-31', 25, 'Proposta'),
+(12, 'Brescia', 'Caccia al tesoro', 'Mario Rossi', '2025-03-31', 25, 'Proposta'),
+(13, 'Ghedi', 'Aeronautica', 'Mario Rossi', '2025-03-31', 25, 'Proposta'),
+(14, 'Base Aeronautica', 'Scuola di volo', 'Mario Rossi', '2025-03-31', 25, 'Proposta');
 
 -- --------------------------------------------------------
 
@@ -174,9 +179,9 @@ CREATE TABLE `volontari` (
 --
 
 INSERT INTO `volontari` (`id`, `nome`, `cognome`, `email`, `password`, `tipi_di_visite`, `password_modificata`) VALUES
-(1, 'Mario', 'Rossi', 'mario.rossi@example.com', 'password123', 'Arte, Storia', 0),
-(2, 'Luisa', 'Bianchi', 'luisa.bianchi@example.com', 'password456', 'Natura, Scienza', 0),
-(3, 'Giulia', 'Verdi', 'giulia.verdi@example.com', 'password789', 'Storia, Natura', 0),
+(1, 'Mario', 'Rossi', 'mario.rossi@example.com', 'passmodificata123', 'Arte, Storia', 1),
+(2, 'Luisa', 'Bianchi', 'luisa.bianchi@example.com', 'passmodificata456', 'Natura, Scienza', 1),
+(3, 'Giulia', 'Verdi', 'giulia.verdi@example.com', 'passmodificata789', 'Storia, Natura', 1),
 (4, 'Alessandro', 'Neri', 'alessandro.neri@example.com', 'password321', 'Arte, Scienza', 0),
 (5, 'Francesca', 'Gialli', 'francesca.gialli@example.com', 'password654', 'Natura, Storia', 0);
 
@@ -203,6 +208,12 @@ ALTER TABLE `credenziali_temporanee`
 --
 ALTER TABLE `luoghi`
   ADD PRIMARY KEY (`nome`);
+
+--
+-- Indexes for table `utenti_unificati`
+--
+ALTER TABLE `utenti_unificati`
+  ADD PRIMARY KEY (`email`);
 
 --
 -- Indexes for table `visite`
@@ -238,7 +249,7 @@ ALTER TABLE `credenziali_temporanee`
 -- AUTO_INCREMENT for table `visite`
 --
 ALTER TABLE `visite`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `volontari`
