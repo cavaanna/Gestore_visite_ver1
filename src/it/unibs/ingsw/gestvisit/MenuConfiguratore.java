@@ -32,7 +32,7 @@ public class MenuConfiguratore implements Menu {
                 } else if (chosed == 5) {
                     visitManager.mostraVolontari();
                 } else if (chosed == 6) {
-                    visitManager.assegnaVisita();
+                    // visitManager.assegnaVisita();
                 } else if (chosed == 7) {
                     visitManager.mostraVisite();
                 } else if (chosed == 8) {

@@ -15,15 +15,20 @@ public class VisitManager {
     private ArrayList<Volontario> volontari = new ArrayList<>();    
     private ArrayList<Configuratore> configuratori = new ArrayList<>();
     private ArrayList<TemporaryCredential> temporaryCredentials = new ArrayList<>();
-    private CredentialManager credentialManager = new CredentialManager();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor(); // Pool con thread caching
     private final DatabaseUpdater databaseUpdater = new DatabaseUpdater(executorService);
     private final Utilita utilita = new Utilita(databaseUpdater);
+    private final CredentialManager credentialManager = new CredentialManager(databaseUpdater);
+    
+    
 
     //Gestione Thread-------------------------------------------------------------------------
     public VisitManager() {
         // Sincronizza i dati iniziali dal database
         databaseUpdater.sincronizzaDalDatabase();
+        // Avvia il thread di aggiornamento periodico
+        databaseUpdater.avviaSincronizzazioneConSleep(); // Esegui ogni 5 secondi
+        System.out.println("Thread di aggiornamento avviato.");
     }
 
     public void stopExecutorService() {
@@ -36,7 +41,9 @@ public class VisitManager {
             executorService.shutdownNow();
             Thread.currentThread().interrupt();
         }
+        databaseUpdater.arrestaSincronizzazioneConSleep();
         System.out.println("ExecutorService arrestato.");
+        
     }
 
 
@@ -58,6 +65,7 @@ public class VisitManager {
                 Volontario volontario = databaseUpdater.getVolontariMap().get(nomeUtente);
                 if (volontario == null) {
                     System.out.println("Errore: volontario non trovato.");
+                    return;
                 }
     
                 // Controlla se il volontario ha credenziali temporanee
@@ -120,10 +128,6 @@ public class VisitManager {
     }
 
     //Logiche per le visite-------------------------------------------------------------------------
-    public void assegnaVisita() {
-        // Utilita.assegnaVisita();
-    }
-
     public void mostraVisite() {        
         utilita.stampaVisite();
     }
@@ -165,9 +169,9 @@ public class VisitManager {
         credentialManager.saveNewVolCredential(volontario);
     }
 
-    public void leggiCredenziali(){
-        credentialManager.caricaCredenzialiVolontario(volontari);
-        credentialManager.caricaCredenzialiTemporanee(temporaryCredentials);
-        credentialManager.caricaCredenzialiConfiguratore(configuratori);
-    }
+    // public void leggiCredenziali(){
+    //     credentialManager.caricaCredenzialiVolontario(volontari);
+    //     credentialManager.caricaCredenzialiTemporanee(temporaryCredentials);
+    //     credentialManager.caricaCredenzialiConfiguratore(configuratori);
+    // }
 }
