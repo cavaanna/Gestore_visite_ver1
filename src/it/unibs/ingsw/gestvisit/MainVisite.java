@@ -1,4 +1,4 @@
-package src.it.unibs.ingsw.gestvisit.gestvisit;
+package src.it.unibs.ingsw.gestvisit;
 
 public class MainVisite {
     public static void main(String[] args) {

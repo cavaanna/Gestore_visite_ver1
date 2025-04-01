@@ -1,4 +1,4 @@
-package src.it.unibs.ingsw.gestvisit.gestvisit;
+package src.it.unibs.ingsw.gestvisit;
 
 public class Volontario extends Utente {
     private String email;

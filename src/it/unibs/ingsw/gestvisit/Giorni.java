@@ -1,4 +1,4 @@
-package src.it.unibs.ingsw.gestvisit.gestvisit;
+package src.it.unibs.ingsw.gestvisit;
 
 public enum Giorni {
         LUNEDI, MARTEDI, MERCOLEDI, GIOVEDI, VENERDI, SABATO, DOMENICA;
