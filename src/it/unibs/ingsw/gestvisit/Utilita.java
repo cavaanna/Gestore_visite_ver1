@@ -200,7 +200,7 @@ public class Utilita {
         }
     }
 
-    public void assegnaVisita() {
+    public void aggiungiVisita() {
         ConcurrentHashMap<String, Luogo> luoghiMap = databaseUpdater.getLuoghiMap();
         ConcurrentHashMap<String, Volontario> volontariMap = databaseUpdater.getVolontariMap();
         ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
@@ -227,13 +227,20 @@ public class Utilita {
         }
     
         System.out.println("\nElenco dei volontari disponibili:");
-        List<String> volontariNomi = new ArrayList<>(volontariMap.keySet());
+        // int i = 0;
+        // for (Volontario volontario : volontariMap.values()) {
+        //     System.out.printf("%d. %s%n", i + 1, volontario.getNome());
+        //     i++;
+        // }
+        List<Volontario> volontariNomi = new ArrayList<>(volontariMap.values());
         for (int i = 0; i < volontariNomi.size(); i++) {
-            System.out.printf("%d. %s%n", i + 1, volontariNomi.get(i));
+            System.out.printf("%d. %s %s%n", i + 1, volontariNomi.get(i).getNome(), volontariNomi.get(i).getCognome());
         }
+
+
     
         int volontarioIndex = InputDati.leggiIntero("Seleziona il numero del volontario: ", 1, volontariNomi.size()) - 1;
-        String volontarioNomeScelto = volontariNomi.get(volontarioIndex);
+        String volontarioNomeScelto = volontariNomi.get(volontarioIndex).getNome() + " " + volontariNomi.get(volontarioIndex).getCognome();
     
         LocalDate dataVisita;
         if (InputDati.yesOrNo("Vuoi inserire una data personale? ")) {

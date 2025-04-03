@@ -110,7 +110,7 @@ public class VisitManager {
 
     // Metodo per aggiungere una nuova visita
     public void aggiungiVisita() {
-        utilita.assegnaVisita();
+        utilita.aggiungiVisita();
     }
 
     public void modificaStatoVisita() {
