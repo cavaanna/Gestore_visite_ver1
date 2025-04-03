@@ -232,7 +232,7 @@ public class Utilita {
         //     System.out.printf("%d. %s%n", i + 1, volontario.getNome());
         //     i++;
         // }
-        List<String> volontariNomi = new ArrayList<>(volontariMap.values());//TODO: controllare se è giusto
+        List<Volontario> volontariNomi = new ArrayList<>(volontariMap.values());//TODO: controllare se è giusto
         for (int i = 0; i < volontariNomi.size(); i++) {
             System.out.printf("%d. %s %s%n", i + 1, volontariNomi.get(i).getNome(), volontariNomi.get(i).getCognome());
         }
@@ -278,8 +278,8 @@ public class Utilita {
         // Crea l'oggetto Visite utilizzando il costruttore completo
         Visite nuovaVisita = new Visite(id, luogoNomeScelto, tipoVisitaScelto, volontarioNomeScelto, dataVisita, maxPersone, stato);
         visiteMap.put(id, nuovaVisita);
-        // Aggiungi la visita al database
-        databaseUpdater.sincronizzaConDatabase();
+
+        databaseUpdater.sincronizzaVisita(id, nuovaVisita);
     
         System.out.println("Visita assegnata con successo per la data " + dataVisita + "!");
     }

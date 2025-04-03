@@ -57,7 +57,7 @@ public class VisitManager {
 
         Luogo nuovoLuogo = new Luogo(nome, descrizione);
         databaseUpdater.getLuoghiMap().put(nome, nuovoLuogo);
-        databaseUpdater.sincronizzaConDatabase();    
+        databaseUpdater.sincronizzaLuoghi();    
         System.out.println("Luogo aggiunto: " + nuovoLuogo);
 
     }

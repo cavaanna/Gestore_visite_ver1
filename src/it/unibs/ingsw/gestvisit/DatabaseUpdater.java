@@ -42,39 +42,30 @@ public class DatabaseUpdater {
         });
     }
 
-    // Metodo per sincronizzare i dati con il database in modo sincrono
-    public void sincronizzaConDatabase() {
-        executorService.submit(() -> {
-            try {
-                // Sincronizza i volontari
-                for (Volontario volontario : volontariMap.values()) {
-                    aggiungiVolontario(volontario);
-                    aggiornaPswVolontario(volontario.getEmail(), volontario.getPassword());
-                }
-    
-                // Sincronizza i configuratori
-                for (Configuratore configuratore : configuratoriMap.values()) {
-                    aggiornaConfiguratore(configuratore.getEmail(), configuratore);
-                }
-    
-                // Sincronizza i luoghi
-                for (Luogo luogo : luoghiMap.values()) {
-                    aggiungiLuogo(luogo);
-                    aggiornaLuogo(luogo.getNome(), luogo);
-                }
-    
-                // Sincronizza le visite
-                for (Visite visita : visiteMap.values()) {
-                    aggiungiVisita(visita);
-                    aggiornaVisita(visita.getId(), visita);
-                    aggiornaMaxPersonePerVisita(visita.getMaxPersone());
-                }
-    
-                System.out.println("Sincronizzazione con il database completata.");
-            } catch (Exception e) {
-                System.err.println("Errore durante la sincronizzazione con il database: " + e.getMessage());
-            }
-        });
+    // Metodo per sincronizzare i volontari
+    public void sincronizzaVolontari() {
+        for (Volontario volontario : volontariMap.values()) {
+            aggiungiVolontario(volontario);
+            aggiornaPswVolontario(volontario.getEmail(), volontario.getPassword());
+        }
+        System.out.println("Sincronizzazione dei volontari completata.");
+    }
+
+    // Metodo per sincronizzare i configuratori
+    public void sincronizzaConfiguratori() {
+        for (Configuratore configuratore : configuratoriMap.values()) {
+            aggiornaConfiguratore(configuratore.getEmail(), configuratore);
+        }
+        System.out.println("Sincronizzazione dei configuratori completata.");
+    }
+
+    // Metodo per sincronizzare i luoghi
+    public void sincronizzaLuoghi() {
+        for (Luogo luogo : luoghiMap.values()) {
+            aggiungiLuogo(luogo);
+            aggiornaLuogo(luogo.getNome(), luogo);
+        }
+        System.out.println("Sincronizzazione dei luoghi completata.");
     }
 
     // Metodo per avviare la sincronizzazione periodica con un ciclo e sleep
@@ -106,6 +97,24 @@ public class DatabaseUpdater {
                 Thread.currentThread().interrupt(); // Ripristina lo stato di interruzione
             }
         }
+    }
+
+    // Metodo per verificare se un record esiste nel database
+    private boolean recordEsiste(String sql, Object... parametri) {
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    
+            for (int i = 0; i < parametri.length; i++) {
+                pstmt.setObject(i + 1, parametri[i]);
+            }
+    
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next(); // Restituisce true se il record esiste
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore durante la verifica dell'esistenza del record: " + e.getMessage());
+        }
+        return false;
     }
 
     //Logiche per Credenziali Temporanee--------------------------------------------------
@@ -147,7 +156,7 @@ public class DatabaseUpdater {
                             rs.getString("password"),
                             rs.getString("tipi_di_visite")
                     );
-                    volontariMap.put(email, volontario);
+                    volontariMap.putIfAbsent(email, volontario);
                 }
             }
         } catch (SQLException e) {
@@ -157,20 +166,27 @@ public class DatabaseUpdater {
 
     // Metodo per aggiungere un volontario al database
     private void aggiungiVolontario(Volontario volontario) {
-        String sql = "INSERT INTO volontari (nome, cognome, email, password, tipi_di_visite) VALUES (?, ?, ?, ?, ?)";
-        executorService.submit(() -> {
+        String verificaSql = "SELECT 1 FROM volontari WHERE email = ?";
+        String inserisciSql = "INSERT INTO volontari (nome, cognome, email, password, tipi_di_visite) VALUES (?, ?, ?, ?, ?)";
+    
+        if (!recordEsiste(verificaSql, volontario.getEmail())) {
             try (Connection conn = DatabaseConnection.connect();
-                    PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                 PreparedStatement pstmt = conn.prepareStatement(inserisciSql)) {
+    
                 pstmt.setString(1, volontario.getNome());
                 pstmt.setString(2, volontario.getCognome());
                 pstmt.setString(3, volontario.getEmail());
                 pstmt.setString(4, volontario.getPassword());
                 pstmt.setString(5, volontario.getTipiDiVisite());
                 pstmt.executeUpdate();
+    
+                System.out.println("Volontario aggiunto con successo.");
             } catch (SQLException e) {
                 System.err.println("Errore durante l'aggiunta del volontario: " + e.getMessage());
             }
-        });
+        } else {
+            System.out.println("Il volontario con email " + volontario.getEmail() + " esiste già.");
+        }
     }
 
     // Metodo per aggiornare un volontario nel database
@@ -231,7 +247,7 @@ public class DatabaseUpdater {
                             email,
                             rs.getString("password")
                     );
-                    configuratoriMap.put(email, configuratore);
+                    configuratoriMap.putIfAbsent(email, configuratore);
                 }
             }
         } catch (SQLException e) {
@@ -299,7 +315,7 @@ public class DatabaseUpdater {
                             nome,
                             rs.getString("descrizione")
                     );
-                    luoghiMap.put(nome, luogo);
+                    luoghiMap.putIfAbsent(nome, luogo);
                 }
             }
         } catch (SQLException e) {
@@ -331,17 +347,24 @@ public class DatabaseUpdater {
 
     // Metodo per aggiungere un luogo al database
     private void aggiungiLuogo(Luogo luogo) {
-        String sql = "INSERT INTO luoghi (nome, descrizione) VALUES (?, ?)";
-        executorService.submit(() -> {
+        String verificaSql = "SELECT 1 FROM luoghi WHERE nome = ?";
+        String inserisciSql = "INSERT INTO luoghi (nome, descrizione) VALUES (?, ?)";
+    
+        if (!recordEsiste(verificaSql, luogo.getNome())) {
             try (Connection conn = DatabaseConnection.connect();
-                    PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                 PreparedStatement pstmt = conn.prepareStatement(inserisciSql)) {
+    
                 pstmt.setString(1, luogo.getNome());
                 pstmt.setString(2, luogo.getDescrizione());
                 pstmt.executeUpdate();
+    
+                System.out.println("Luogo aggiunto con successo.");
             } catch (SQLException e) {
                 System.err.println("Errore durante l'aggiunta del luogo: " + e.getMessage());
             }
-        });
+        } else {
+            System.out.println("Il luogo con nome " + luogo.getNome() + " esiste già.");
+        }
     }
 
 //Logiche delle visite--------------------------------------------------
@@ -365,7 +388,7 @@ public class DatabaseUpdater {
 
                     // Usa il costruttore completo di Visite
                     Visite visita = new Visite(id, luogo, tipoVisita, volontario, data, maxPersone, stato);
-                    visiteMap.put(id, visita);
+                    visiteMap.putIfAbsent(id, visita);
                 }
             }
         } catch (SQLException e) {
@@ -375,21 +398,28 @@ public class DatabaseUpdater {
 
     // Metodo per aggiungere una visita al database
     private void aggiungiVisita(Visite visita) {
-        String sql = "INSERT INTO visite (luogo, tipo_visita, volontario, data, stato, max_persone) VALUES (?, ?, ?, ?, ?, ?)";
-        executorService.submit(() -> {
+        String verificaSql = "SELECT 1 FROM visite WHERE id = ?";
+        String inserisciSql = "INSERT INTO visite (luogo, tipo_visita, volontario, data, stato, max_persone) VALUES (?, ?, ?, ?, ?, ?)";
+    
+        if (!recordEsiste(verificaSql, visita.getId())) {
             try (Connection conn = DatabaseConnection.connect();
-                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                 PreparedStatement pstmt = conn.prepareStatement(inserisciSql)) {
+    
                 pstmt.setString(1, visita.getLuogo());
                 pstmt.setString(2, visita.getTipoVisita());
                 pstmt.setString(3, visita.getVolontario());
                 pstmt.setDate(4, visita.getData() != null ? java.sql.Date.valueOf(visita.getData()) : null);
-                pstmt.setString(5, "Proposta"); // Stato iniziale
-                pstmt.setInt(6, 10); // Valore predefinito per max_persone
+                pstmt.setString(5, visita.getStato());
+                pstmt.setInt(6, visita.getMaxPersone());
                 pstmt.executeUpdate();
+    
+                System.out.println("Visita aggiunta con successo.");
             } catch (SQLException e) {
                 System.err.println("Errore durante l'aggiunta della visita: " + e.getMessage());
             }
-        });
+        } else {
+            System.out.println("La visita con ID " + visita.getId() + " esiste già.");
+        }
     }
 
     // Metodo per aggiornare una visita specifica
