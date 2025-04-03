@@ -74,49 +74,8 @@ public class Utilita {
         }
     }
 
-    // Metodo per modificare la data di una visita
-    public void modificaDataVisita() {
-        ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
-
-        if (visiteMap.isEmpty()) {
-            System.out.println("Non ci sono visite disponibili da modificare.");
-            return;
-        }
-
-        System.out.println("Visite disponibili:");
-        for (Map.Entry<Integer, Visite> entry : visiteMap.entrySet()) {
-            Visite visita = entry.getValue();
-            System.out.printf("%d. Luogo: %s, Tipo Visita: %s, Volontario: %s, Data: %s%n",
-                    entry.getKey(), visita.getLuogo(), visita.getTipoVisita(), visita.getVolontario(),
-                    visita.getData() != null ? visita.getData() : "Nessuna data");
-        }
-
-        int visitaId = InputDati.leggiIntero("Seleziona l'ID della visita da modificare: ");
-        if (!visiteMap.containsKey(visitaId)) {
-            System.out.println("ID visita non valido.");
-            return;
-        }
-
-        int anno = InputDati.leggiIntero("Inserisci il nuovo anno della visita: ");
-        int mese = InputDati.leggiIntero("Inserisci il nuovo mese della visita (1-12): ");
-        int giorno = InputDati.leggiIntero("Inserisci il nuovo giorno della visita: ");
-        LocalDate nuovaData = LocalDate.of(anno, mese, giorno);
-
-        Visite visitaAggiornata = visiteMap.get(visitaId);
-        visitaAggiornata.setData(nuovaData);
-
-        databaseUpdater.sincronizzaVisita(visitaId, visitaAggiornata);
-        System.out.println("Data della visita aggiornata con successo.");
-    }
-
-    // Metodo per impostare il numero massimo di persone per visita
-    public void setMaxPersonePerVisita(int maxPersonePerVisita) {
-        databaseUpdater.sincronizzaMaxPersonePerVisita(maxPersonePerVisita);
-        System.out.println("Numero massimo di persone per visita aggiornato a: " + maxPersonePerVisita);
-    }
-
     // Metodo per visualizzare le visite per stato
-    public void visualizzaVisitePerStato() {
+    public void stampaVisitePerStato() {
         ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
 
         if (visiteMap.isEmpty()) {
@@ -143,44 +102,6 @@ public class Utilita {
         }
     }
 
-    public void modificaStatoVisita() {
-        ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
-    
-        if (visiteMap.isEmpty()) {
-            System.out.println("Non ci sono visite disponibili da modificare.");
-            return;
-        }
-    
-        System.out.println("Visite disponibili:");
-        for (Map.Entry<Integer, Visite> entry : visiteMap.entrySet()) {
-            Visite visita = entry.getValue();
-            System.out.printf("%d. Luogo: %s, Tipo Visita: %s, Stato: %s%n",
-                    entry.getKey(), visita.getLuogo(), visita.getTipoVisita(), visita.getStato());
-        }
-    
-        int visitaId = InputDati.leggiIntero("Seleziona l'ID della visita da modificare: ");
-        if (!visiteMap.containsKey(visitaId)) {
-            System.out.println("Visita non valida.");
-            return;
-        }
-    
-        String[] stati = {"Proposta", "Completa", "Confermata", "Cancellata", "Effettuata"};
-        System.out.println("Stati disponibili:");
-        for (int i = 0; i < stati.length; i++) {
-            System.out.printf("%d. %s%n", i + 1, stati[i]);
-        }
-    
-        int sceltaStato = InputDati.leggiIntero("Seleziona il nuovo stato: ", 1, stati.length) - 1;
-        String nuovoStato = stati[sceltaStato];
-    
-        Visite visitaAggiornata = visiteMap.get(visitaId);
-        visitaAggiornata.setStato(nuovoStato);
-    
-        // Aggiorna la visita nel database
-        databaseUpdater.sincronizzaVisita(visitaId, visitaAggiornata);
-        System.out.println("Stato della visita aggiornato con successo.");
-    }
-
     // Metodo per visualizzare l'archivio storico delle visite
     public void visualizzaArchivioStorico() {
         ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
@@ -200,6 +121,87 @@ public class Utilita {
         }
     }
 
+    // Metodo per modificare la data di una visita
+    public void modificaDataVisita() {
+        ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
+
+        if (visiteMap.isEmpty()) {
+            System.out.println("Non ci sono visite disponibili da modificare.");
+            return;
+        }
+
+        System.out.println("Visite disponibili:");
+        for (Map.Entry<Integer, Visite> entry : visiteMap.entrySet()) {
+            Visite visita = entry.getValue();
+            System.out.printf("%d. Luogo: %s, Tipo Visita: %s, Volontario: %s, Data: %s%n",
+                    entry.getKey(), visita.getLuogo(), visita.getTipoVisita(), visita.getVolontario(),
+                    visita.getData() != null ? visita.getData() : "Nessuna data");
+        }
+
+        int visitaId = InputDati.leggiIntero("Seleziona l'ID della visita da modificare: ");
+        if (!visiteMap.containsKey(visitaId)) {
+            System.out.println("ID visita non valido.");
+            return;
+        }
+
+        int anno = InputDati.leggiIntero("Inserisci il nuovo anno della visita: ", LocalDate.now().getYear(), 2100);
+        int mese = InputDati.leggiIntero("Inserisci il nuovo mese della visita (1-12): ", 1, 12);
+        int giorno = InputDati.leggiIntero("Inserisci il nuovo giorno della visita: ", 1, LocalDate.of(anno, mese, 1).lengthOfMonth());
+        LocalDate nuovaData = LocalDate.of(anno, mese, giorno);
+
+        Visite visitaAggiornata = visiteMap.get(visitaId);
+        visitaAggiornata.setData(nuovaData);
+
+        databaseUpdater.aggiornaVisita(visitaId, visitaAggiornata);
+        System.out.println("Data della visita aggiornata con successo.");
+    }
+
+    // Metodo per impostare il numero massimo di persone per visita
+    public void modificaMaxPersone(int maxPersonePerVisita) {
+        databaseUpdater.aggiornaMaxPersonePerVisita(maxPersonePerVisita);
+        System.out.println("Numero massimo di persone per visita aggiornato a: " + maxPersonePerVisita);
+    }
+
+    // Metodo per visualizzare le visite in base allo stato
+    public void modificaStatoVisita() {
+        ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
+    
+        if (visiteMap.isEmpty()) {
+            System.out.println("Non ci sono visite disponibili da modificare.");
+            return;
+        }
+    
+        System.out.println("Visite disponibili:");
+        for (Map.Entry<Integer, Visite> entry : visiteMap.entrySet()) {
+            Visite visita = entry.getValue();
+            System.out.printf("%d. Luogo: %s, Tipo Visita: %s, Stato: %s%n",
+                    entry.getKey(), visita.getLuogo(), visita.getTipoVisita(), visita.getStato());
+        }
+    
+        int visitaId = InputDati.leggiIntero("Seleziona la visita da modificare: ");
+        if (!visiteMap.containsKey(visitaId)) {
+            System.out.println("Visita non valida.");
+            return;
+        }
+    
+        String[] stati = {"Proposta", "Completa", "Confermata", "Cancellata", "Effettuata"};
+        System.out.println("Stati disponibili:");
+        for (int i = 0; i < stati.length; i++) {
+            System.out.printf("%d. %s%n", i + 1, stati[i]);
+        }
+    
+        int sceltaStato = InputDati.leggiIntero("Seleziona il nuovo stato: ", 1, stati.length) - 1;
+        String nuovoStato = stati[sceltaStato];
+    
+        Visite visitaAggiornata = visiteMap.get(visitaId);
+        visitaAggiornata.setStato(nuovoStato);
+    
+        // Aggiorna la visita nel database
+        databaseUpdater.aggiornaVisita(visitaId, visitaAggiornata);
+        System.out.println("Stato della visita aggiornato con successo.");
+    }
+
+    // Metodo per aggiungere una nuova visita
     public void aggiungiVisita() {
         ConcurrentHashMap<String, Luogo> luoghiMap = databaseUpdater.getLuoghiMap();
         ConcurrentHashMap<String, Volontario> volontariMap = databaseUpdater.getVolontariMap();
@@ -227,18 +229,12 @@ public class Utilita {
         }
     
         System.out.println("\nElenco dei volontari disponibili:");
-        // int i = 0;
-        // for (Volontario volontario : volontariMap.values()) {
-        //     System.out.printf("%d. %s%n", i + 1, volontario.getNome());
-        //     i++;
-        // }
         List<Volontario> volontariNomi = new ArrayList<>(volontariMap.values());//TODO: controllare se è giusto
         for (int i = 0; i < volontariNomi.size(); i++) {
             System.out.printf("%d. %s %s%n", i + 1, volontariNomi.get(i).getNome(), volontariNomi.get(i).getCognome());
         }
 
-
-    
+        // Chiedi all'utente di selezionare un volontario
         int volontarioIndex = InputDati.leggiIntero("Seleziona il numero del volontario: ", 1, volontariNomi.size()) - 1;
         String volontarioNomeScelto = volontariNomi.get(volontarioIndex).getNome() + " " + volontariNomi.get(volontarioIndex).getCognome();
     
@@ -279,9 +275,36 @@ public class Utilita {
         Visite nuovaVisita = new Visite(id, luogoNomeScelto, tipoVisitaScelto, volontarioNomeScelto, dataVisita, maxPersone, stato);
         visiteMap.put(id, nuovaVisita);
 
-        databaseUpdater.sincronizzaVisita(id, nuovaVisita);
+        databaseUpdater.aggiungiNuovaVisita(nuovaVisita);
     
         System.out.println("Visita assegnata con successo per la data " + dataVisita + "!");
+    }
+
+    // Metodo per aggiungere un volontario
+    public void aggiungiVolontario() {
+        String nome = InputDati.leggiStringaNonVuota("inserire il nome del volontario: ");
+        String cognome = InputDati.leggiStringaNonVuota("inserire il cognome del volontario: ");
+        String email = InputDati.leggiStringaNonVuota("inserire l'email del volontario: ");
+        String nomeUtente = email;
+        String password = InputDati.leggiStringaNonVuota("inserire la password: ");
+        
+        Volontario nuovoVolontario = new Volontario(nome, cognome, email, nomeUtente, password);
+        // Aggiungi il volontario alla HashMap
+        databaseUpdater.getVolontariMap().putIfAbsent(email, nuovoVolontario);
+
+        // Sincronizza con il database
+        databaseUpdater.aggiungiNuovoVolontario(nuovoVolontario);
+    }
+
+    // Metodo per aggiungere un luogo
+    public void aggiungiLuogo() {
+        String nome = InputDati.leggiStringaNonVuota("inserire il nome del luogo: ");
+        String descrizione = InputDati.leggiStringaNonVuota("inserire la descrizione del luogo: ");
+
+        Luogo nuovoLuogo = new Luogo(nome, descrizione);
+        databaseUpdater.getLuoghiMap().putIfAbsent(nome, nuovoLuogo);
+        databaseUpdater.aggiungiNuovoLuogo(nuovoLuogo);  
+        System.out.println("Luogo aggiunto: " + nuovoLuogo);
     }
 
 }

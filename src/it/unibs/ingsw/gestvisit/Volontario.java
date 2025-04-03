@@ -6,9 +6,7 @@ public class Volontario extends Utente {
     private String tipiDiVisite;
     
     public Volontario(String nome, String cognome, String email, String password, String tipiDiVisite) {
-        super(nome, cognome);
-        this.email = email;
-        this.password = password;
+        super(nome, cognome, email, password); // Call the constructor of the superclass (Utente)
         this.tipiDiVisite = tipiDiVisite;
     }
     
@@ -38,6 +36,6 @@ public class Volontario extends Utente {
 
     @Override
     public String toString() {
-        return "Volontario [nome=" + super.getNome() + ", cognome=" + super.getCognome() + ", email=" + email + ", tipiDiVisite=" + tipiDiVisite + "]";
+        return "Volontario [nome=" + super.getNome() + ", cognome=" + super.getCognome() + ", email=" + super.getEmail() + ", tipiDiVisite=" + tipiDiVisite + "]";
     }
 }

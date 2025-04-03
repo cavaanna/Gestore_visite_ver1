@@ -38,7 +38,7 @@ public class CredentialManager {
                 // Controlla se il volontario ha credenziali temporanee
                 if (!credenzialiModificate) {
                     System.out.println("Hai credenziali temporanee. Ti preghiamo di modificarle.");
-                    modificaCredenzialiVolontario(volontarioCorrente);
+                    salvaNuovaPasswordVol(volontarioCorrente);
                 }
                 menu = new MenuVolontario();
                 break;
@@ -50,7 +50,7 @@ public class CredentialManager {
     
             case "TEMP":
                 System.out.println("Accesso come configuratore con credenziali temporanee.");
-                modificaCredenzialiConfiguratore();
+                salvaNuoveCredenzialiConf();
                 menu = new MenuConfiguratore();
                 break;
     
@@ -66,7 +66,7 @@ public class CredentialManager {
         databaseUpdater.getTemporaryCredentials();
     }
 
-    public void saveNewVolCredential(Volontario volontario) {    
+    public void salvaNuovaPasswordVol(Volontario volontario) {    
         // Inserisci la nuova password
         String nuovaPassword = InputDati.leggiStringaNonVuota("Inserisci la nuova password: ");
         
@@ -75,10 +75,10 @@ public class CredentialManager {
         databaseUpdater.getVolontariMap().put(volontario.getEmail(), volontario);
 
         // Sincronizza con il database
-        databaseUpdater.sincronizzaConDatabase();
+        databaseUpdater.aggiornaPswVolontario(volontario.getEmail(), nuovaPassword);
     }
 
-    public void saveNewConfigCredential() {
+    public void salvaNuoveCredenzialiConf() {
         // Raccogli i dati del nuovo configuratore
         String newEmail = InputDati.leggiStringaNonVuota("Inserisci la nuova email: ");
         String newPassword = InputDati.leggiStringaNonVuota("Inserisci la nuova password: ");
@@ -92,7 +92,7 @@ public class CredentialManager {
         databaseUpdater.getConfiguratoriMap().put(newEmail, updatedConfiguratore);
     
         // Sincronizza con il database
-        databaseUpdater.sincronizzaConDatabase();
+        databaseUpdater.aggiungiNuovoConf(updatedConfiguratore);
     }
 
     // Restituisci il tipo_utente dell'utente o null se non autenticato
@@ -106,15 +106,4 @@ public class CredentialManager {
         Boolean passwordModificata = databaseUpdater.isPasswordModificata(email);
         return passwordModificata;
     }
-
-    public void modificaCredenzialiConfiguratore() {
-        saveNewConfigCredential();
-    }
-
-    public void modificaCredenzialiVolontario(Volontario volontario) {
-        saveNewVolCredential(volontario);
-    }
-
-
-
 }

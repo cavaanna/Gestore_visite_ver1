@@ -3,10 +3,14 @@ package src.it.unibs.ingsw.gestvisit;
 public class Utente {
     private String nome;
     private String cognome;
+    private String email;
+    private String password;
 
-    public Utente(String nome, String cognome) {
+    public Utente(String nome, String cognome, String email, String password) {
         this.nome = nome;
         this.cognome = cognome; // assuming an empty default, can modify as per requirements
+        this.email = email;
+        this.password = password;
     }
 
     public void setNome(String nome) {
@@ -24,6 +28,15 @@ public class Utente {
     public String getCognome() {
         return cognome;
     }
+
+    public String getEmail() {
+        return email; // added method to get the email
+    }
+
+    public String getPassword() {
+        return password; // added method to get the password
+    }
+
 
     @Override
     public String toString() {

@@ -117,6 +117,30 @@ public class DatabaseUpdater {
         return false;
     }
 
+    //Metodo per aggiungere in utenti unificati
+    private void aggiungiUtenteUnificato(Utente utente) {
+        String nome = utente.getNome();
+        String cognome = utente.getCognome();
+        String email = utente.getEmail();
+        String password = utente.getPassword();
+        String tipoUtente = utente.getClass().getSimpleName(); // Ottiene il nome della classe come tipo utente
+    
+        String inserisciSqlUtentiUnificati = "INSERT INTO utenti_unificati (nome, cognome, email, password, tipo_utente) VALUES (?, ?, ?, ?, ?)";
+    
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(inserisciSqlUtentiUnificati)) {
+            pstmt.setString(1, nome);
+            pstmt.setString(2, cognome);
+            pstmt.setString(3, email);
+            pstmt.setString(4, password);
+            pstmt.setString(5, tipoUtente);
+            pstmt.executeUpdate();
+            System.out.println("Utente aggiunto con successo nella tabella 'utenti_unificati'.");
+        } catch (SQLException e) {
+            System.err.println("Errore durante l'aggiunta dell'utente nella tabella 'utenti_unificati': " + e.getMessage());
+        }
+    }
+
     //Logiche per Credenziali Temporanee--------------------------------------------------
     public void caricaCredenzialiTemporanee() {
         String sql = "SELECT username, password FROM credenziali_temporanee";
@@ -166,31 +190,28 @@ public class DatabaseUpdater {
 
     // Metodo per aggiungere un volontario al database
     private void aggiungiVolontario(Volontario volontario) {
-        String verificaSql = "SELECT 1 FROM volontari WHERE email = ?";
-        String inserisciSql = "INSERT INTO volontari (nome, cognome, email, password, tipi_di_visite) VALUES (?, ?, ?, ?, ?)";
+        String inserisciSqlVolontari = "INSERT INTO volontari (nome, cognome, email, password, tipi_di_visite, password_modificata) VALUES (?, ?, ?, ?, ?, ?)";
     
-        if (!recordEsiste(verificaSql, volontario.getEmail())) {
-            try (Connection conn = DatabaseConnection.connect();
-                 PreparedStatement pstmt = conn.prepareStatement(inserisciSql)) {
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(inserisciSqlVolontari)) {
+            pstmt.setString(1, volontario.getNome());
+            pstmt.setString(2, volontario.getCognome());
+            pstmt.setString(3, volontario.getEmail());
+            pstmt.setString(4, volontario.getPassword());
+            pstmt.setString(5, volontario.getTipiDiVisite());
+            pstmt.setBoolean(6, false);
+            pstmt.executeUpdate();
+            System.out.println("Volontario aggiunto con successo nella tabella 'volontari'.");
     
-                pstmt.setString(1, volontario.getNome());
-                pstmt.setString(2, volontario.getCognome());
-                pstmt.setString(3, volontario.getEmail());
-                pstmt.setString(4, volontario.getPassword());
-                pstmt.setString(5, volontario.getTipiDiVisite());
-                pstmt.executeUpdate();
-    
-                System.out.println("Volontario aggiunto con successo.");
-            } catch (SQLException e) {
-                System.err.println("Errore durante l'aggiunta del volontario: " + e.getMessage());
-            }
-        } else {
-            System.out.println("Il volontario con email " + volontario.getEmail() + " esiste già.");
+            // Aggiungi anche nella tabella 'utenti_unificati'
+            aggiungiUtenteUnificato(volontario);
+        } catch (SQLException e) {
+            System.err.println("Errore durante l'aggiunta del volontario: " + e.getMessage());
         }
     }
 
     // Metodo per aggiornare un volontario nel database
-    private void aggiornaPswVolontario(String email, String nuovaPassword) {
+    public void aggiornaPswVolontario(String email, String nuovaPassword) {
         String sqlVolontari = "UPDATE volontari SET password = ?, password_modificata = ? WHERE email = ?";
         String sqlUtentiUnificati = "UPDATE utenti_unificati SET password = ?, password_modificata = ? WHERE email = ?";
     
@@ -255,8 +276,28 @@ public class DatabaseUpdater {
         }
     }
 
+    // Metodo per aggiungere un configuratore al database
+    private void aggiungiConfiguratore(Configuratore configuratore) {
+        String inserisciSqlConfiguratori = "INSERT INTO configuratori (nome, cognome, email, password) VALUES (?, ?, ?, ?)";
+    
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(inserisciSqlConfiguratori)) {
+            pstmt.setString(1, configuratore.getNome());
+            pstmt.setString(2, configuratore.getCognome());
+            pstmt.setString(3, configuratore.getEmail());
+            pstmt.setString(4, configuratore.getPassword());
+            pstmt.executeUpdate();
+            System.out.println("Configuratore aggiunto con successo nella tabella 'configuratori'.");
+    
+            // Aggiungi anche nella tabella 'utenti_unificati'
+            aggiungiUtenteUnificato(configuratore);
+        } catch (SQLException e) {
+            System.err.println("Errore durante l'aggiunta del configuratore: " + e.getMessage());
+        }
+    }
+
     // Metodo per aggiornare un configuratore nel database
-    private void aggiornaConfiguratore(String email, Configuratore configuratoreAggiornato) {
+    public void aggiornaConfiguratore(String email, Configuratore configuratoreAggiornato) {
         String sqlConfiguratori = "UPDATE configuratori SET nome = ?, cognome = ?, password = ?, email = ? WHERE email = ?";
         String sqlUtentiUnificati = "UPDATE utenti_unificati SET nome = ?, cognome = ?, password = ?, email = ? WHERE email = ?";
     
@@ -347,10 +388,8 @@ public class DatabaseUpdater {
 
     // Metodo per aggiungere un luogo al database
     private void aggiungiLuogo(Luogo luogo) {
-        String verificaSql = "SELECT 1 FROM luoghi WHERE nome = ?";
         String inserisciSql = "INSERT INTO luoghi (nome, descrizione) VALUES (?, ?)";
-    
-        if (!recordEsiste(verificaSql, luogo.getNome())) {
+
             try (Connection conn = DatabaseConnection.connect();
                  PreparedStatement pstmt = conn.prepareStatement(inserisciSql)) {
     
@@ -362,9 +401,6 @@ public class DatabaseUpdater {
             } catch (SQLException e) {
                 System.err.println("Errore durante l'aggiunta del luogo: " + e.getMessage());
             }
-        } else {
-            System.out.println("Il luogo con nome " + luogo.getNome() + " esiste già.");
-        }
     }
 
 //Logiche delle visite--------------------------------------------------
@@ -398,10 +434,8 @@ public class DatabaseUpdater {
 
     // Metodo per aggiungere una visita al database
     private void aggiungiVisita(Visite visita) {
-        String verificaSql = "SELECT 1 FROM visite WHERE id = ?";
         String inserisciSql = "INSERT INTO visite (luogo, tipo_visita, volontario, data, stato, max_persone) VALUES (?, ?, ?, ?, ?, ?)";
-    
-        if (!recordEsiste(verificaSql, visita.getId())) {
+
             try (Connection conn = DatabaseConnection.connect();
                  PreparedStatement pstmt = conn.prepareStatement(inserisciSql)) {
     
@@ -417,13 +451,10 @@ public class DatabaseUpdater {
             } catch (SQLException e) {
                 System.err.println("Errore durante l'aggiunta della visita: " + e.getMessage());
             }
-        } else {
-            System.out.println("La visita con ID " + visita.getId() + " esiste già.");
-        }
     }
 
     // Metodo per aggiornare una visita specifica
-    private void aggiornaVisita(int visitaId, Visite visitaAggiornata) {
+    public void aggiornaVisita(int visitaId, Visite visitaAggiornata) {
         String sql = "UPDATE visite SET luogo = ?, tipo_visita = ?, volontario = ?, data = ?, stato = ?, max_persone = ? WHERE id = ?";
         executorService.submit(() -> {
             try (Connection conn = DatabaseConnection.connect();
@@ -450,7 +481,7 @@ public class DatabaseUpdater {
     }
 
     // Metodo per aggiornare il numero massimo di persone per tutte le visite
-    private void aggiornaMaxPersonePerVisita(int maxPersonePerVisita) {
+    public void aggiornaMaxPersonePerVisita(int maxPersonePerVisita) {
         String sql = "UPDATE visite SET max_persone = ?";
         executorService.submit(() -> {
             try (Connection conn = DatabaseConnection.connect();
@@ -469,12 +500,39 @@ public class DatabaseUpdater {
         });
     }
 
-    public void sincronizzaVisita(int visitaId, Visite visitaAggiornata) {
-        aggiornaVisita(visitaId, visitaAggiornata);
+    public void aggiungiNuovaVisita(Visite nuovaVisita) {
+        String verificaSql = "SELECT 1 FROM visite WHERE luogo = ? AND data = ? AND volontario = ?";
+        if(!recordEsiste(verificaSql, nuovaVisita.getLuogo(), nuovaVisita.getData(), nuovaVisita.getVolontario())){
+            System.out.println("La visita non esiste già. Procedo con l'aggiunta.");
+            aggiungiVisita(nuovaVisita);
+        }
+        else{
+            System.out.println("La visita esiste già. Non posso aggiungerla.");
+            return;
+        }
     }
 
-    public void sincronizzaMaxPersonePerVisita(int maxPersonePerVisita) {
-        aggiornaMaxPersonePerVisita(maxPersonePerVisita);
+    public void aggiungiNuovoVolontario(Volontario nuovoVolontario) {
+        String verificaSql = "SELECT 1 FROM volontari WHERE email = ?";
+        if(!recordEsiste(verificaSql, nuovoVolontario.getEmail())){
+            aggiungiVolontario(nuovoVolontario);
+            System.out.println("Volontario aggiunto con successo.");
+        }
+        else{
+            System.out.println("Il volontario con email " + nuovoVolontario.getEmail() + " esiste già.");
+        }
+    }
+
+    public void aggiungiNuovoLuogo(Luogo nuovoLuogo) {
+        String verificaSql = "SELECT 1 FROM luoghi WHERE nome = ?";
+        if(!recordEsiste(verificaSql, nuovoLuogo.getNome())){
+            System.out.println("Il luogo non esiste già. Procedo con l'aggiunta.");
+            aggiungiLuogo(nuovoLuogo);
+        }
+        else{
+            System.out.println("Il luogo esiste già.");
+            return;
+        }
     }
 
     

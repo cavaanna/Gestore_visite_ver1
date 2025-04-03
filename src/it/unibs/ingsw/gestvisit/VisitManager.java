@@ -31,7 +31,7 @@ public class VisitManager {
     public void stopExecutorService() {
         executorService.shutdown();
         try {
-            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+            if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
                 executorService.shutdownNow();
             }
         } catch (InterruptedException e) {
@@ -52,14 +52,7 @@ public class VisitManager {
     
     //Logiche per i luoghi-------------------------------------------------------------------------
     public void aggiungiLuogo() {
-        String nome = InputDati.leggiStringaNonVuota("inserire il nome del luogo: ");
-        String descrizione = InputDati.leggiStringaNonVuota("inserire la descrizione del luogo: ");
-
-        Luogo nuovoLuogo = new Luogo(nome, descrizione);
-        databaseUpdater.getLuoghiMap().put(nome, nuovoLuogo);
-        databaseUpdater.sincronizzaLuoghi();    
-        System.out.println("Luogo aggiunto: " + nuovoLuogo);
-
+        utilita.aggiungiLuogo();
     }
 
     public void mostraLuoghi() {
@@ -68,20 +61,7 @@ public class VisitManager {
 
     //Logiche per i volontari-------------------------------------------------------------------------
     public void aggiungiVolontario() {
-        String nome = InputDati.leggiStringaNonVuota("inserire il nome del volontario: ");
-        String cognome = InputDati.leggiStringaNonVuota("inserire il cognome del volontario: ");
-        String email = InputDati.leggiStringaNonVuota("inserire l'email del volontario: ");
-        String nomeUtente = email;
-        String password = InputDati.leggiStringaNonVuota("inserire la password: ");
-        
-        Volontario nuovoVolontario = new Volontario(nome, cognome, email, nomeUtente, password);
-        // Aggiungi il volontario alla HashMap
-        databaseUpdater.getVolontariMap().put(email, nuovoVolontario);
-
-        // Sincronizza con il database
-        databaseUpdater.sincronizzaConDatabase();
-
-        System.out.println("Volontario aggiunto: " + nuovoVolontario);
+        utilita.aggiungiVolontario();
     }
 
     public void mostraVolontari() {
@@ -94,12 +74,12 @@ public class VisitManager {
     }
     
     public void visualizzaVisitePerStato(){
-        utilita.visualizzaVisitePerStato ();
+        utilita.stampaVisitePerStato ();
     }
 
     public void modificaNumeroMaxPersonePerVisita() {
         int numeroMax = InputDati.leggiInteroConMinimo("Inserisci il numero massimo di persone per visita: ", 2);
-        utilita.setMaxPersonePerVisita(numeroMax);
+        utilita.modificaMaxPersone(numeroMax);
         System.out.println("Numero massimo di persone per visita modificato a: " + numeroMax);
             
     }
