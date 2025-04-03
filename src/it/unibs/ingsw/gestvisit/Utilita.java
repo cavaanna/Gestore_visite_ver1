@@ -232,7 +232,7 @@ public class Utilita {
         //     System.out.printf("%d. %s%n", i + 1, volontario.getNome());
         //     i++;
         // }
-        List<Volontario> volontariNomi = new ArrayList<>(volontariMap.values());
+        List<String> volontariNomi = new ArrayList<>(volontariMap.values());//TODO: controllare se è giusto
         for (int i = 0; i < volontariNomi.size(); i++) {
             System.out.printf("%d. %s %s%n", i + 1, volontariNomi.get(i).getNome(), volontariNomi.get(i).getCognome());
         }

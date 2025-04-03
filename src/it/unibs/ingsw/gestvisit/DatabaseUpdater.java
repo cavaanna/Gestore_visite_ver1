@@ -500,13 +500,13 @@ public class DatabaseUpdater {
 
     // Metodo per recuperare il numero massimo di persone per visita dal database
     public int getMaxPersoneDefault() {
-        String sql = "SELECT valore FROM configurazioni WHERE chiave = 'max_persone_default'";
+        String sql = "SELECT max_persone FROM visite";
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
     
             if (rs.next()) {
-                return rs.getInt("valore");
+                return rs.getInt("max_persone"); // Restituisce il numero massimo di persone
             }
         } catch (SQLException e) {
             System.err.println("Errore durante il recupero del numero massimo di persone: " + e.getMessage());
