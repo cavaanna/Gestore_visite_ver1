@@ -535,6 +535,18 @@ public class DatabaseUpdater {
         }
     }
 
+    public void aggiungiNuovoConf(Configuratore nuovoConfiguratore) {
+        String verificaSql = "SELECT 1 FROM configuratori WHERE email = ?";
+        if(!recordEsiste(verificaSql, nuovoConfiguratore.getEmail())){
+            System.out.println("Il configuratore non esiste già. Procedo con l'aggiunta.");
+            aggiungiConfiguratore(nuovoConfiguratore);
+        }
+        else{
+            System.out.println("Il configuratore esiste già.");
+            return;
+        }
+    }
+
     
 
 
