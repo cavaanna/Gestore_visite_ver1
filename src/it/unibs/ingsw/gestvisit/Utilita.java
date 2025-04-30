@@ -121,6 +121,41 @@ public class Utilita {
         }
     }
 
+
+    // Metodo per visualizzare le visite assegnate a un volontario
+    public void visualizzaVisiteVolontario() {
+        VisitManager visitManager = new VisitManager();
+        Utente utenteCorrente = visitManager.getTipoUtente();
+    
+        if (!(utenteCorrente instanceof Volontario)) {
+            System.out.println("Nessun volontario trovato o utente non autenticato.");
+            return;
+        }
+    
+        Volontario volontario = (Volontario) utenteCorrente;
+        System.out.println("Visite assegnate a " + volontario.getNome() + " " + volontario.getCognome() + ":");
+    
+        ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
+        boolean visiteTrovate = false;
+    
+        for (Map.Entry<Integer, Visite> entry : visiteMap.entrySet()) {
+            Visite visita = entry.getValue();
+            if (visita.getVolontario().equals(volontario.getEmail())) {
+                System.out.println("ID: " + entry.getKey());
+                System.out.println("Luogo: " + visita.getLuogo());
+                System.out.println("Tipo Visita: " + visita.getTipoVisita());
+                System.out.println("Data: " + (visita.getData() != null ? visita.getData() : "Nessuna data"));
+                System.out.println("Stato: " + visita.getStato());
+                System.out.println("-------------------------");
+                visiteTrovate = true;
+            }
+        }
+    
+        if (!visiteTrovate) {
+            System.out.println("Nessuna visita assegnata al volontario.");
+        }
+    }
+
     // Metodo per modificare la data di una visita
     public void modificaDataVisita() {
         ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();

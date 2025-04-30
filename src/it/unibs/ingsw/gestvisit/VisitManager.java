@@ -9,6 +9,9 @@ import java.util.concurrent.TimeUnit;
 
 
 public class VisitManager {
+    public Volontario volontarioCorrente; // Volontario corrente
+    public Configuratore configuratoreCorrente; // Configuratore corrente
+    public Utente utenteCorrente; // Utente corrente (Volontario o Configuratore)
 
     // Attributi------------------------------------------------------------------------------  
     private final ExecutorService executorService = Executors.newFixedThreadPool(4); // Pool con thread caching
@@ -45,24 +48,20 @@ public class VisitManager {
 
 
     //Autenticazione-------------------------------------------------------------------------
-    public Menu autentica() {
+    public void autentica() {
         Utente utente = credentialManager.autentica();
-        Menu menu;
+        Menu menu = null; // Inizializza il menu a null
 
         if (utente instanceof Volontario) {
-            Volontario volontarioCorrente = (Volontario) utente;
+            volontarioCorrente = (Volontario) utente;
             menu = new MenuVolontario();
-            return menu;
-            
         } else if (utente instanceof Configuratore) {
-            Configuratore configuratoreCorrente = (Configuratore) utente;
+            configuratoreCorrente = (Configuratore) utente;
             menu = new MenuConfiguratore();
-            return menu;
-            
         } else {
             System.out.println("Autenticazione fallita.");
-            return null;
         }
+        menu.mostraMenu(); // Mostra il menu corrispondente
     }
 
     
@@ -116,7 +115,13 @@ public class VisitManager {
     public void visualizzaArchivioStorico() {
         utilita.visualizzaArchivioStorico();
     } 
-    
-    
 
+    public void visualizzaVisiteVolontario(){
+        utilita.visualizzaVisiteVolontario();
+    }
+
+    public Utente getTipoUtente(){
+        return utenteCorrente;
+    }
+    
 }

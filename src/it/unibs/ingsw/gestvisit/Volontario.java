@@ -26,6 +26,11 @@ public class Volontario implements Utente {
         return email;
     }
     
+    @Override
+    public String getCognome() {
+        return cognome;
+    }
+    
     public String getTipiDiVisite() {
         return tipiDiVisite;
     }
