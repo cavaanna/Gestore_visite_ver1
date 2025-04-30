@@ -101,4 +101,7 @@ public class VisitManager {
         utilita.visualizzaArchivioStorico();
     }    
 
+    public void visualizzaVisiteVolontario(){
+        //utilita.visualizzaVisiteVolontario();
+    }
 }
