@@ -6,61 +6,109 @@ public class CredentialManager {
 
     private DatabaseUpdater databaseUpdater ;
     private Volontario volontarioCorrente = null;
+    private Configuratore configuratoreCorrente = null;
     
     public CredentialManager(DatabaseUpdater databaseUpdater) {
         this.databaseUpdater = databaseUpdater;
     }
 
     //Autenticazione-------------------------------------------------------------------------
-    public void autentica(){
+    public Utente autentica() {
         String email = InputDati.leggiStringaNonVuota("Inserisci (email): ");
         String password = InputDati.leggiStringaNonVuota("Inserisci la password: ");
-        String tipo_utente = verificaCredenziali(email, password);
-        Boolean credenzialiModificate = isPasswordModificata(email);
+        String tipoUtente = verificaCredenziali(email, password);
+        boolean credenzialiModificate = isPasswordModificata(email);
     
-        if (tipo_utente == null) {
+        if (tipoUtente == null) {
             System.out.println("Credenziali non valide.");
-            return;
+            return null;
         }
     
-        Menu menu;
-        switch (tipo_utente) {
+        switch (tipoUtente) {
             case "Volontario":
                 System.out.println("Accesso come Volontario.");
-    
-                // Cerca il volontario corrispondente all'email
-                volontarioCorrente = databaseUpdater.getVolontariMap().get(email);
-                if (volontarioCorrente == null) {
+                Volontario volontario = databaseUpdater.getVolontariMap().get(email);
+                if (volontario == null) {
                     System.out.println("Errore: volontario non trovato.");
-                    return;
+                    return null;
                 }
     
-                // Controlla se il volontario ha credenziali temporanee
                 if (!credenzialiModificate) {
                     System.out.println("Hai credenziali temporanee. Ti preghiamo di modificarle.");
-                    salvaNuovaPasswordVol(volontarioCorrente);
+                    salvaNuovaPasswordVol(volontario);
                 }
-                menu = new MenuVolontario();
-                break;
+                return volontario;
     
             case "Configuratore":
                 System.out.println("Accesso come Configuratore.");
-                menu = new MenuConfiguratore();
-                break;
-    
-            case "TEMP":
-                System.out.println("Accesso come configuratore con credenziali temporanee.");
-                salvaNuoveCredenzialiConf();
-                menu = new MenuConfiguratore();
-                break;
+                Configuratore configuratore = databaseUpdater.getConfiguratoriMap().get(email);
+                if (configuratore == null) {
+                    System.out.println("Errore: configuratore non trovato.");
+                    return null;
+                }
+                return configuratore;
     
             default:
-                System.out.println("Ruolo non riconosciuto: " + tipo_utente);
-                return;
+                System.out.println("Ruolo non riconosciuto: " + tipoUtente);
+                return null;
         }
-        // Mostra il menu corrispondente
-        menu.mostraMenu();
     }
+
+    // public Utente autentica(){
+    //     String email = InputDati.leggiStringaNonVuota("Inserisci (email): ");
+    //     String password = InputDati.leggiStringaNonVuota("Inserisci la password: ");
+    //     String tipo_utente = verificaCredenziali(email, password);
+    //     Boolean credenzialiModificate = isPasswordModificata(email);
+    
+    //     if (tipo_utente == null) {
+    //         System.out.println("Credenziali non valide.");
+    //         return null;
+    //     }
+    
+    //     Menu menu;
+    //     switch (tipo_utente) {
+    //         case "Volontario":
+    //             System.out.println("Accesso come Volontario.");
+    
+    //             // Cerca il volontario corrispondente all'email
+    //             volontarioCorrente = databaseUpdater.getVolontariMap().get(email);
+    //             if (volontarioCorrente == null) {
+    //                 System.out.println("Errore: volontario non trovato.");
+    //                 return null;
+    //             }
+    
+    //             // Controlla se il volontario ha credenziali temporanee
+    //             if (!credenzialiModificate) {
+    //                 System.out.println("Hai credenziali temporanee. Ti preghiamo di modificarle.");
+    //                 salvaNuovaPasswordVol(volontarioCorrente);
+    //             }
+    //             menu = new MenuVolontario();
+    //             return volontarioCorrente;
+    
+    //         case "Configuratore":
+    //             System.out.println("Accesso come Configuratore.");
+    //             configuratoreCorrente = databaseUpdater.getConfiguratoriMap().get(email);
+    //             if (configuratoreCorrente == null) {
+    //                 System.out.println("Errore: configuratore non trovato.");
+    //                 return null;
+    //             }
+    //             menu = new MenuConfiguratore();
+    //             return configuratoreCorrente;
+
+    
+    //         case "TEMP":
+    //             System.out.println("Accesso come configuratore con credenziali temporanee.");
+    //             salvaNuoveCredenzialiConf();
+    //             menu = new MenuConfiguratore();
+    //             break;
+    
+    //         default:
+    //             System.out.println("Ruolo non riconosciuto: " + tipo_utente);
+    //             return null;
+    //     }
+    //     // Mostra il menu corrispondente
+    //     menu.mostraMenu();
+    // }
 
     public void caricaCredenzialiTemporanee() {
         databaseUpdater.getTemporaryCredentials();

@@ -45,8 +45,24 @@ public class VisitManager {
 
 
     //Autenticazione-------------------------------------------------------------------------
-    public void autentica() {
-        credentialManager.autentica();
+    public Menu autentica() {
+        Utente utente = credentialManager.autentica();
+        Menu menu;
+
+        if (utente instanceof Volontario) {
+            Volontario volontarioCorrente = (Volontario) utente;
+            menu = new MenuVolontario();
+            return menu;
+            
+        } else if (utente instanceof Configuratore) {
+            Configuratore configuratoreCorrente = (Configuratore) utente;
+            menu = new MenuConfiguratore();
+            return menu;
+            
+        } else {
+            System.out.println("Autenticazione fallita.");
+            return null;
+        }
     }
 
     
@@ -99,6 +115,8 @@ public class VisitManager {
 
     public void visualizzaArchivioStorico() {
         utilita.visualizzaArchivioStorico();
-    }    
+    } 
+    
+    
 
 }

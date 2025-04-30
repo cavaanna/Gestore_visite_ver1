@@ -1,13 +1,29 @@
 package src.it.unibs.ingsw.gestvisit;
 
-public class Volontario extends Utente {
+public class Volontario implements Utente {
+    private String nome;
+    private String cognome;
     private String email;
     private String password;
-    private String tipiDiVisite;
-    
+    private String tipiDiVisite; // Tipi di visite a cui il volontario è assegnato
+
+    // Costruttore, getter e setter
     public Volontario(String nome, String cognome, String email, String password, String tipiDiVisite) {
-        super(nome, cognome, email, password); // Call the constructor of the superclass (Utente)
+        this.nome = nome;
+        this.cognome = cognome;
+        this.email = email;
+        this.password = password;
         this.tipiDiVisite = tipiDiVisite;
+    }
+
+    @Override
+    public String getNome() {
+        return nome;
+    }
+
+    @Override
+    public String getEmail() {
+        return email;
     }
     
     public String getTipiDiVisite() {
@@ -16,10 +32,6 @@ public class Volontario extends Utente {
 
     public void setTipiDiVisite(String tipiDiVisite) {
         this.tipiDiVisite = tipiDiVisite;
-    }
-
-    public String getEmail() {
-        return email;
     }
     
     public void setEmail(String email) {
@@ -36,6 +48,6 @@ public class Volontario extends Utente {
 
     @Override
     public String toString() {
-        return "Volontario [nome=" + super.getNome() + ", cognome=" + super.getCognome() + ", email=" + super.getEmail() + ", tipiDiVisite=" + tipiDiVisite + "]";
+        return "Volontario [nome=" + nome + ", cognome=" + cognome + ", email=" + email + ", tipiDiVisite=" + tipiDiVisite + "]";
     }
 }

@@ -1,16 +1,33 @@
 package src.it.unibs.ingsw.gestvisit;
 
 
-public class Configuratore extends Utente {
+public class Configuratore implements Utente {
+    private String nome;
+    private String cognome;
     private String email;
     private String password;
 
+    // Costruttore, getter e setter
     public Configuratore(String nome, String cognome, String email, String password) {
-        super(nome, cognome, email, password); // Call the constructor of the superclass (Utente)
+        this.nome = nome;
+        this.cognome = cognome;
+        this.email = email;
+        this.password = password;
     }
 
+    @Override
+    public String getNome() {
+        return nome;
+    }
+
+    @Override
     public String getEmail() {
         return email;
+    }
+
+    @Override
+    public String getCognome() {
+        return cognome;
     }
 
     public void setEmail(String email) {

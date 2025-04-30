@@ -6,7 +6,6 @@ import java.time.LocalDate;
 public class MenuVolontario implements Menu {
     private static final String[] OPZIONI_VOLONTARIO = {
         "Visualizza visite assegnate",
-        "Inserisci preferenze",
         "Inserisci disponibilità"
     };
 
@@ -22,10 +21,10 @@ public class MenuVolontario implements Menu {
             if (chosed != 0) {
                 if (chosed == 1) {
                     //Logica per visualizzare le visite assegnate al volontario
+                    VisitManager.visualizzaVisiteAssegnate();
                 } else if (chosed == 2) {
-                    //Logica per inserire le preferenze del volontario
-                } else if (chosed == 3) {
                     //Logica per inserire le disponibilità del volontario
+                    VisitManager.inserisciDisponibilita();
                 } else if (chosed == 4) {
                     //TODO
                 } else if (chosed == 0) {
