@@ -12,7 +12,7 @@ public class VisitManager {
     public Volontario volontarioCorrente; // Volontario corrente
     public Configuratore configuratoreCorrente; // Configuratore corrente
     public Utente utenteCorrente; // Utente corrente (Volontario o Configuratore)
-
+    
     // Attributi------------------------------------------------------------------------------  
     private final ExecutorService executorService = Executors.newFixedThreadPool(4); // Pool con thread caching
     private final DatabaseUpdater databaseUpdater = new DatabaseUpdater(executorService);
@@ -20,6 +20,19 @@ public class VisitManager {
     private final CredentialManager credentialManager = new CredentialManager(databaseUpdater);
 
     
+    private static VisitManager instance;
+    
+
+    public static VisitManager getInstance() {
+        if (instance == null) {
+            instance = new VisitManager();
+        }
+        return instance;
+    }
+
+
+
+
     
 
     //Gestione Thread-------------------------------------------------------------------------
@@ -48,21 +61,43 @@ public class VisitManager {
 
 
     //Autenticazione-------------------------------------------------------------------------
-    public void autentica() {
+    /*public void autentica() {
         Utente utente = credentialManager.autentica();
         Menu menu = null; // Inizializza il menu a null
 
         if (utente instanceof Volontario) {
-            volontarioCorrente = (Volontario) utente;
+            setUtenteCorrente(volontarioCorrente);
             menu = new MenuVolontario();
         } else if (utente instanceof Configuratore) {
-            configuratoreCorrente = (Configuratore) utente;
+            utenteCorrente = configuratoreCorrente;
             menu = new MenuConfiguratore();
         } else {
             System.out.println("Autenticazione fallita.");
         }
         menu.mostraMenu(); // Mostra il menu corrispondente
+    }*/
+    public void autentica() {
+    // Autentica l'utente tramite il credentialManager
+    Utente utente = credentialManager.autentica();
+    Menu menu = null; // Inizializza il menu come null
+
+    if (utente instanceof Volontario) {
+        setUtenteCorrente(utente); // Imposta l'utente corrente
+        menu = new MenuVolontario(); // Mostra il menu per il volontario
+    } else if (utente instanceof Configuratore) {
+        setUtenteCorrente(utente); // Imposta l'utente corrente
+        menu = new MenuConfiguratore(); // Mostra il menu per il configuratore
+    } else {
+        System.out.println("Autenticazione fallita.");
+        return; // Esci dalla funzione
     }
+
+    // Mostra il menu corrispondente
+    if (menu != null) {
+        menu.mostraMenu();
+    }
+}
+
 
     
     //Logiche per i luoghi-------------------------------------------------------------------------
@@ -117,11 +152,14 @@ public class VisitManager {
     } 
 
     public void visualizzaVisiteVolontario(){
-        utilita.visualizzaVisiteVolontario();
+        utilita.visualizzaVisiteVolontario(instance);
     }
 
     public Utente getTipoUtente(){
         return utenteCorrente;
     }
     
+    public void setUtenteCorrente(Utente utente) {
+    this.utenteCorrente = utente;
+}
 }

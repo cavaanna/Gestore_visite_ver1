@@ -13,6 +13,7 @@ import it.unibs.mylib.InputDati;
 public class Utilita {
 
     private final DatabaseUpdater databaseUpdater;
+   
 
     public Utilita(DatabaseUpdater databaseUpdater) {
         this.databaseUpdater = databaseUpdater;
@@ -123,9 +124,16 @@ public class Utilita {
 
 
     // Metodo per visualizzare le visite assegnate a un volontario
-    public void visualizzaVisiteVolontario() {
-        VisitManager visitManager = new VisitManager();
+   /*  public void visualizzaVisiteVolontario() {
+        
         Utente utenteCorrente = visitManager.getTipoUtente();
+
+       
+    if (utenteCorrente == null) {
+        System.out.println("Utente corrente è null.");
+    } else {
+        System.out.println("Tipo utente corrente: " + utenteCorrente.getClass().getSimpleName());
+    }   
     
         if (!(utenteCorrente instanceof Volontario)) {
             System.out.println("Nessun volontario trovato o utente non autenticato.");
@@ -154,7 +162,51 @@ public class Utilita {
         if (!visiteTrovate) {
             System.out.println("Nessuna visita assegnata al volontario.");
         }
+    }*/
+    public void visualizzaVisiteVolontario(VisitManager visitManager) {
+    // Recupera l'utente corrente dall'istanza esistente di VisitManager
+    Utente utenteCorrente = visitManager.getTipoUtente();
+
+    // Debug: Verifica l'utente corrente
+    if (utenteCorrente == null) {
+        System.out.println("Utente corrente è null.");
+        return;
+    } else {
+        System.out.println("Tipo utente corrente: " + utenteCorrente.getClass().getSimpleName());
     }
+
+    // Verifica che l'utente sia un Volontario
+    if (!(utenteCorrente instanceof Volontario)) {
+        System.out.println("Nessun volontario trovato o utente non autenticato.");
+        return;
+    }
+
+    // Cast a Volontario
+    Volontario volontario = (Volontario) utenteCorrente;
+    System.out.println("Visite assegnate a " + volontario.getNome() + " " + volontario.getCognome() + ":");
+
+    // Recupera le visite
+    ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
+    boolean visiteTrovate = false;
+
+    for (Map.Entry<Integer, Visite> entry : visiteMap.entrySet()) {
+        Visite visita = entry.getValue();
+        if (visita.getVolontario().equals(volontario.getNome() + " " + volontario.getCognome())) {
+            System.out.println("ID: " + entry.getKey());
+            System.out.println("Luogo: " + visita.getLuogo());
+            System.out.println("Tipo Visita: " + visita.getTipoVisita());
+            System.out.println("Data: " + (visita.getData() != null ? visita.getData() : "Nessuna data"));
+            System.out.println("Stato: " + visita.getStato());
+            System.out.println("-------------------------");
+            visiteTrovate = true;
+        }
+    } 
+
+    if (!visiteTrovate) {
+        System.out.println("Nessuna visita assegnata al volontario.");
+    }
+}
+
 
     // Metodo per modificare la data di una visita
     public void modificaDataVisita() {
