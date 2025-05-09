@@ -394,5 +394,14 @@ public class Utilita {
         System.out.println("Luogo aggiunto: " + nuovoLuogo);
     }
 
+    public void visualizzaVisiteVolontario (Volontario volontario){
+        ConcurrentHashMap<Integer, Visite> visiteMap = databaseUpdater.getVisiteMap();
+        for(int i = 0; i < visiteMap.size(); i++){
+            if(visiteMap.get(i).getVolontario().equals(volontario)){
+                System.out.println(visiteMap.get(i));
+            }
+        }
+    }
+
 }
 
