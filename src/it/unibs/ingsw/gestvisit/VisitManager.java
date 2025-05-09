@@ -152,7 +152,6 @@ public class VisitManager {
     } 
 
     public void visualizzaVisiteVolontario(){
-<<<<<<< HEAD
         utilita.visualizzaVisiteVolontario(instance);
     }
 
@@ -163,8 +162,4 @@ public class VisitManager {
     public void setUtenteCorrente(Utente utente) {
     this.utenteCorrente = utente;
 }
-=======
-        //utilita.visualizzaVisiteVolontario();
-    }
->>>>>>> abba7a4cf2ea03957507777c3ae08e213ddab7ef
 }

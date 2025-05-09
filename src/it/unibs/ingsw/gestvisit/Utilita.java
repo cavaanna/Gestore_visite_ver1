@@ -314,13 +314,12 @@ public class Utilita {
             System.out.println("Nessun volontario disponibile.");
             return;
         }
-    
+        
         System.out.println("\nElenco dei volontari disponibili:");
         List<Volontario> volontariNomi = new ArrayList<>(volontariMap.values());//TODO: controllare se è giusto
         for (int i = 0; i < volontariNomi.size(); i++) {
-            System.out.printf("%d. %s %s%n", i + 1, volontariNomi.get(i).getNome(), volontariNomi.get(i).getCognome());
+            System.out.printf("%d. %s %s, " + "tipo di visita: " + "%s%n", i + 1, volontariNomi.get(i).getNome(), volontariNomi.get(i).getCognome(), volontariNomi.get(i).getTipiDiVisite());
         }
-
         // Chiedi all'utente di selezionare un volontario
         int volontarioIndex = InputDati.leggiIntero("Seleziona il numero del volontario: ", 1, volontariNomi.size()) - 1;
         String volontarioNomeScelto = volontariNomi.get(volontarioIndex).getNome() + " " + volontariNomi.get(volontarioIndex).getCognome();
