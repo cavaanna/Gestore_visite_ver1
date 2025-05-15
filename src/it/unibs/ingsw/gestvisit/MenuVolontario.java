@@ -10,6 +10,7 @@ public class MenuVolontario implements Menu {
         "Inserisci disponibilità"
     };
 
+
     @Override
     public void mostraMenu() {
         // Inizializza il menu con le opzioni disponibili
@@ -24,10 +25,7 @@ public class MenuVolontario implements Menu {
                     //Logica per visualizzare le visite assegnate al volontario
                     visitManager.visualizzaVisiteVolontario();
                 } else if (chosed == 2) {
-                    //Logica per inserire le disponibilità del volontario
-                    //VisitManager.inserisciDisponibilita();
-                } else if (chosed == 4) {
-                    //TODO
+                    
                 } else if (chosed == 0) {
                     goOn = false;
                 }
