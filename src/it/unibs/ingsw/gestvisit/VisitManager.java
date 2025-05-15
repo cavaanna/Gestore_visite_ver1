@@ -80,11 +80,7 @@ public class VisitManager {
     // Autentica l'utente tramite il credentialManager
     Utente utente = credentialManager.autentica();
     Menu menu = null; // Inizializza il menu come null
-
-    if (utente instanceof Volontario) {
-        setUtenteCorrente(utente); // Imposta l'utente corrente
-        menu = new MenuVolontario(); // Mostra il menu per il volontario
-    } else if (utente instanceof Configuratore) {
+    if (utente instanceof Configuratore) {
         setUtenteCorrente(utente); // Imposta l'utente corrente
         menu = new MenuConfiguratore(); // Mostra il menu per il configuratore
     } else {
@@ -150,10 +146,6 @@ public class VisitManager {
     public void visualizzaArchivioStorico() {
         utilita.visualizzaArchivioStorico();
     } 
-
-    public void visualizzaVisiteVolontario(){
-        utilita.visualizzaVisiteVolontario(instance);
-    }
 
     public Utente getTipoUtente(){
         return utenteCorrente;
