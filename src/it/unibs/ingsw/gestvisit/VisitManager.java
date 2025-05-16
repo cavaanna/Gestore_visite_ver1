@@ -30,12 +30,7 @@ public class VisitManager {
         return instance;
     }
 
-
-
-
-    
-
-    //Gestione Thread-------------------------------------------------------------------------
+     //Gestione Thread-------------------------------------------------------------------------
     public VisitManager() {
         // Sincronizza i dati iniziali dal database
         databaseUpdater.sincronizzaDalDatabase();
@@ -83,6 +78,7 @@ public class VisitManager {
 
     if (utente instanceof Volontario) {
         setUtenteCorrente(utente); // Imposta l'utente corrente
+        volontarioCorrente = (Volontario) utente;
         menu = new MenuVolontario(); // Mostra il menu per il volontario
     } else if (utente instanceof Configuratore) {
         setUtenteCorrente(utente); // Imposta l'utente corrente
@@ -138,10 +134,14 @@ public class VisitManager {
         utilita.modificaDataVisita();
     }
 
+    
+
     // Metodo per aggiungere una nuova visita
     public void aggiungiVisita() {
         utilita.aggiungiVisita();
     }
+
+
 
     public void modificaStatoVisita() {
         utilita.modificaStatoVisita();
@@ -153,6 +153,10 @@ public class VisitManager {
 
     public void visualizzaVisiteVolontario(){
         utilita.visualizzaVisiteVolontario(instance);
+    }
+
+    public void inserisciDisponibilitaVolontario() {
+        utilita.inserisciDisponibilitaVolontario(volontarioCorrente);
     }
 
     public Utente getTipoUtente(){
