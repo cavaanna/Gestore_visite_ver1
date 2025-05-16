@@ -26,7 +26,7 @@ public class MenuVolontario implements Menu {
                     visitManager.visualizzaVisiteVolontario();
                 } else if (chosed == 2) {
                     //metti nel menu il richiamo per inserisciDisponibilitaVolontario
-                    visitManager.inserisciDisponibilitaVolontario();
+                  //  visitManager.inserisciDisponibilitaVolontario();
                 } else if (chosed == 0) {
                     goOn = false;
                 }

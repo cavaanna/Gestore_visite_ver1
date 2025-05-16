@@ -133,8 +133,6 @@ public class VisitManager {
         utilita.modificaDataVisita();
     }
 
-    
-
     // Metodo per aggiungere una nuova visita
     public void aggiungiVisita() {
         utilita.aggiungiVisita();
@@ -161,4 +159,13 @@ public class VisitManager {
     public void setUtenteCorrente(Utente utente) {
     this.utenteCorrente = utente;
 }
+
+    public void rimuoviLuogo(){
+        utilita.rimuoviLuogo();
+    }
+
+    public void rimuoviVolontario(){
+        utilita.rimuoviVolontario();
+    }
+
 }

@@ -8,7 +8,7 @@ public class MenuConfiguratore implements Menu {
     private static final String[] SELECT = {"Aggiungi Luogo", "Aggiungi Volontario", "Aggiungi Visita", 
     "Visualizza Luoghi", "Visualizza Volontari", "Visualizza Visite", 
     "Modifica numero massimo di persone per visita", 
-    "Modifica stato della visita", "Visualizza visite per stato", "Visualizza archivio storico"};
+    "Modifica stato della visita", "Visualizza visite per stato", "Visualizza archivio storico", "Chiudi raccolta disponibilita' volontari", "Assegna visita volontari", "Rimuovi luogo", "Rimuovi tipo di visita", "Rimuovi volontario", "Riapri disponibilit' volontari"};
     private VisitManager visitManager = new VisitManager();
 
     @Override
@@ -42,6 +42,16 @@ public class MenuConfiguratore implements Menu {
                 }else if (chosed == 10) {
                     visitManager.visualizzaArchivioStorico();
                 }else if(chosed == 11){
+                   
+                }else if(chosed == 12){
+                    
+                }else if(chosed == 13){
+                    visitManager.rimuoviLuogo();
+                }else if(chosed == 14){
+                    
+                }else if(chosed == 15){
+                    visitManager.rimuoviVolontario();
+                }else if(chosed == 16){
                     
                 }else if (chosed == 0) {
                     goOn = false;

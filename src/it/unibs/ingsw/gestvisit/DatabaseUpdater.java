@@ -1,6 +1,7 @@
 package src.it.unibs.ingsw.gestvisit;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -210,6 +211,33 @@ public class DatabaseUpdater {
         }
     }
 
+   public boolean eliminaVolontario(String email) {
+    if (!volontariMap.containsKey(email)) {
+        System.out.println("Volontario non trovato.");
+        return false;
+    }
+    
+    String deleteQuery = "DELETE FROM volontari WHERE email = ?";
+    
+    try (Connection conn = DatabaseConnection.connect();
+         PreparedStatement stmt = conn.prepareStatement(deleteQuery)) {
+         
+        stmt.setString(1, email);
+        int rows = stmt.executeUpdate();
+        
+        if (rows > 0) {
+            volontariMap.remove(email);
+            return true;
+        } else {
+            return false;
+        }
+    } catch (SQLException e) {
+        System.out.println("Errore SQL durante l'eliminazione del volontario: " + e.getMessage());
+        return false;
+    }
+}
+
+
     // Metodo per aggiornare un volontario nel database
     public void aggiornaPswVolontario(String email, String nuovaPassword) {
         String sqlVolontari = "UPDATE volontari SET password = ?, password_modificata = ? WHERE email = ?";
@@ -402,6 +430,48 @@ public class DatabaseUpdater {
                 System.err.println("Errore durante l'aggiunta del luogo: " + e.getMessage());
             }
     }
+    // Metodo per aggiungere un luogo al database
+   public boolean eliminaLuogo(String nomeLuogo) {
+    if (!luoghiMap.containsKey(nomeLuogo)) {
+        System.out.println("Luogo non trovato.");
+        return false;
+    }
+
+    String deleteVisiteQuery = "DELETE FROM visite WHERE luogo = ?";
+    String deleteLuogoQuery = "DELETE FROM luoghi WHERE nome = ?";
+
+    try (Connection conn = DatabaseConnection.connect()) {
+        conn.setAutoCommit(false);
+
+        try (PreparedStatement deleteVisiteStmt = conn.prepareStatement(deleteVisiteQuery);
+             PreparedStatement deleteLuogoStmt = conn.prepareStatement(deleteLuogoQuery)) {
+
+            deleteVisiteStmt.setString(1, nomeLuogo);
+            deleteVisiteStmt.executeUpdate();
+
+            deleteLuogoStmt.setString(1, nomeLuogo);
+            int righe = deleteLuogoStmt.executeUpdate();
+
+            if (righe > 0) {
+                conn.commit();
+                luoghiMap.remove(nomeLuogo);
+                return true;
+            } else {
+                conn.rollback();
+                return false;
+            }
+        } catch (SQLException e) {
+            conn.rollback();
+            System.out.println("Errore SQL durante l'eliminazione: " + e.getMessage());
+            return false;
+        } finally {
+            conn.setAutoCommit(true);
+        }
+    } catch (SQLException e) {
+        System.out.println("Errore di connessione: " + e.getMessage());
+        return false;
+    }
+}
 
 //Logiche delle visite--------------------------------------------------
     // Metodo per caricare un luogo nel database e memorizzarlo nella HashMap

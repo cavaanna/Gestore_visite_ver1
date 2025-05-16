@@ -1,5 +1,7 @@
 package src.it.unibs.ingsw.gestvisit;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -9,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.sql.Connection;
 
 import it.unibs.mylib.InputDati;
 
@@ -478,5 +481,78 @@ private boolean isTipoVisitaProgrammabileInGiorno(String tipoVisita, String gior
     return !giornoSettimana.equals("SUNDAY");
 }
 
+public void rimuoviLuogo() {
+    ConcurrentHashMap<String, Luogo> luoghiMap = databaseUpdater.getLuoghiMap();
+
+    if (luoghiMap.isEmpty()) {
+        System.out.println("Nessun luogo da eliminare.");
+        return;
+    }
+
+    // Creo una lista ordinata delle chiavi (nomi dei luoghi)
+    List<String> nomiLuoghi = new ArrayList<>(luoghiMap.keySet());
+
+    // Stampo i luoghi con numerazione
+    System.out.println("Lista luoghi:");
+    for (int i = 0; i < nomiLuoghi.size(); i++) {
+        Luogo luogo = luoghiMap.get(nomiLuoghi.get(i));
+        System.out.println((i + 1) + ") " + luogo.getNome());
+    }
+
+    // Chiedo all’utente di inserire il numero del luogo da eliminare
+    int scelta = InputDati.leggiIntero("Inserisci il numero del luogo da eliminare: ", 1, nomiLuoghi.size());
+
+    // Prendo il nome del luogo corrispondente
+    String luogoDaEliminare = nomiLuoghi.get(scelta - 1);
+
+    // Chiamo il metodo eliminaLuogo in DatabaseUpdater
+    boolean successo = databaseUpdater.eliminaLuogo(luogoDaEliminare);
+
+    if (successo) {
+        System.out.println("Luogo eliminato con successo.");
+    } else {
+        System.out.println("Errore durante l'eliminazione del luogo.");
+    }
 }
+
+
+    public void rimuoviVolontario() {
+    ConcurrentHashMap<String, Volontario> volontariMap = databaseUpdater.getVolontariMap();
+    
+    if (volontariMap.isEmpty()) {
+        System.out.println("Nessun volontario da eliminare.");
+        return;
+    }
+    
+    // Creiamo una lista ordinata di email (o di chiavi)
+    List<String> emailList = new ArrayList<>(volontariMap.keySet());
+    
+    // Stampiamo la lista con numeri progressivi
+    System.out.println("Lista volontari:");
+    for (int i = 0; i < emailList.size(); i++) {
+        Volontario v = volontariMap.get(emailList.get(i));
+        System.out.println((i + 1) + ") " + v.getNome() + " - " + v.getEmail());
+    }
+    
+    // Leggi il numero da eliminare (indice)
+    int scelta = InputDati.leggiIntero("Inserisci il numero del volontario da eliminare: ", 1, emailList.size());
+    
+    // Recupera l'email corrispondente
+    String emailDaEliminare = emailList.get(scelta - 1);
+    
+    // Chiama il metodo di eliminazione su DatabaseUpdater
+    boolean successo = databaseUpdater.eliminaVolontario(emailDaEliminare);
+    
+    if (successo) {
+        System.out.println("Volontario eliminato con successo.");
+    } else {
+        System.out.println("Errore durante l'eliminazione del volontario.");
+    }
+}
+
+
+}
+
+
+
 
