@@ -78,7 +78,6 @@ public class VisitManager {
 
     if (utente instanceof Volontario) {
         setUtenteCorrente(utente); // Imposta l'utente corrente
-        volontarioCorrente = (Volontario) utente;
         menu = new MenuVolontario(); // Mostra il menu per il volontario
     } else if (utente instanceof Configuratore) {
         setUtenteCorrente(utente); // Imposta l'utente corrente
@@ -153,10 +152,6 @@ public class VisitManager {
 
     public void visualizzaVisiteVolontario(){
         utilita.visualizzaVisiteVolontario(instance);
-    }
-
-    public void inserisciDisponibilitaVolontario() {
-        utilita.inserisciDisponibilitaVolontario(volontarioCorrente);
     }
 
     public Utente getTipoUtente(){
